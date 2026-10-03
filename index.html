@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diário do Léo — Mini Índice WIN</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{
+  --cyan:#00f6ff;--blue:#1683ff;--green:#00ff88;--red:#ff3864;
+  --purple:#8b5cf6;--bg:#020617;--panel:rgba(7,15,31,.82);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:
+  radial-gradient(circle at 8% 5%,rgba(0,246,255,.10),transparent 25%),
+  radial-gradient(circle at 92% 8%,rgba(139,92,246,.10),transparent 25%),
+  radial-gradient(circle at 50% 100%,rgba(22,131,255,.08),transparent 30%),
+  var(--bg);color:#e5e7eb;font-family:Inter,ui-sans-serif,system-ui,sans-serif;
+}
+body:before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:.12;
+  background-image:linear-gradient(rgba(0,246,255,.08) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(0,246,255,.08) 1px,transparent 1px);
+  background-size:42px 42px;
+  mask-image:linear-gradient(to bottom,#000,transparent);
+}
+.glass{
+  background:linear-gradient(145deg,rgba(10,20,40,.92),rgba(2,6,23,.90));
+  border:1px solid rgba(0,246,255,.15);
+  box-shadow:0 0 30px rgba(0,246,255,.04),inset 0 0 25px rgba(0,246,255,.018);
+  backdrop-filter:blur(14px);
+}
+.neon-header{position:relative;overflow:hidden;border-color:rgba(0,246,255,.32)}
+.neon-header:after{
+  content:"";position:absolute;top:0;left:-55%;width:35%;height:2px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+  animation:scan 5s linear infinite;
+}
+@keyframes scan{to{left:140%}}
+.metric{
+  background:rgba(2,6,23,.72);border:1px solid rgba(0,246,255,.12);
+  transition:.25s;position:relative;overflow:hidden
+}
+.metric:hover{transform:translateY(-3px);border-color:rgba(0,246,255,.42);box-shadow:0 0 18px rgba(0,246,255,.10)}
+.nav-btn{border:1px solid rgba(0,246,255,.10);transition:.2s}
+.nav-btn:hover{transform:translateY(-1px);border-color:rgba(0,246,255,.35)}
+.nav-active{background:linear-gradient(135deg,#0891b2,#2563eb)!important;box-shadow:0 0 18px rgba(0,246,255,.18)}
+.day-card{
+  min-height:124px;background:linear-gradient(145deg,rgba(8,15,32,.94),rgba(2,6,23,.92));
+  border:1px solid rgba(0,246,255,.10);transition:.25s;cursor:pointer
+}
+.day-card:hover{transform:translateY(-4px);border-color:rgba(0,246,255,.38);box-shadow:0 0 20px rgba(0,246,255,.10)}
+.neon-green{border:1px solid rgba(0,255,136,.75)!important;box-shadow:0 0 15px rgba(0,255,136,.16),inset 0 0 16px rgba(0,255,136,.03)}
+.neon-red{border:1px solid rgba(255,56,100,.75)!important;box-shadow:0 0 15px rgba(255,56,100,.16),inset 0 0 16px rgba(255,56,100,.03)}
+.chart-panel{min-height:420px}
+input,textarea,select{
+  background:rgba(2,6,23,.86)!important;border:1px solid rgba(0,246,255,.14)!important;
+  color:#f3f4f6;outline:none;transition:.2s
+}
+input:focus,textarea:focus,select:focus{border-color:var(--cyan)!important;box-shadow:0 0 0 2px rgba(0,246,255,.07),0 0 14px rgba(0,246,255,.10)}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:#020617}
+::-webkit-scrollbar-thumb{background:linear-gradient(#0891b2,#2563eb);border-radius:10px}
+::selection{background:rgba(0,246,255,.25)}
+@media(max-width:640px){
+  body{padding:10px!important}.day-card{min-height:94px;padding:7px!important}
+  .calendar-grid{gap:4px!important}.chart-panel{min-height:350px}
+}
+</style>
+</head>
+
+<body class="min-h-screen p-3 sm:p-6 flex items-center justify-center">
+
+<!-- TELA DE LOGIN / LICENÇA -->
+<div id="auth-screen" class="glass rounded-2xl p-6 sm:p-8 w-full max-w-md text-center space-y-6 shadow-2xl border-cyan-500/40">
+  <div class="space-y-2">
+    <span class="text-3xl">🔐</span>
+    <h1 class="text-xl font-black text-cyan-300 tracking-wider">ACESSO RESTRITO</h1>
+    <p class="text-xs text-gray-400">Diário do Léo — Introduza a senha de licença para desbloquear o sistema.</p>
+  </div>
+  
+  <div class="space-y-3">
+    <input type="password" id="access-password" placeholder="Introduza a sua senha..." class="w-full rounded-xl p-3 text-center text-sm tracking-widest font-bold">
+    <button onclick="validatePassword()" class="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-xl text-xs font-bold shadow-lg shadow-cyan-900/40 text-white tracking-wider uppercase transition">Entrar no Sistema</button>
+    <p id="error-msg" class="text-xs text-red-400 hidden font-bold">Senha incorreta. Tente novamente.</p>
+  </div>
+  <div class="text-[10px] text-gray-600">Proteção de Licença Client-Side v1.0</div>
+</div>
+
+<!-- CONTEÚDO PRINCIPAL DO SISTEMA -->
+<div id="main-app" class="max-w-7xl mx-auto space-y-5 w-full hidden">
+
+<header class="glass neon-header rounded-2xl p-4 sm:p-5">
+  <div class="flex flex-col xl:flex-row gap-4 justify-between items-center">
+    <div class="w-full xl:w-auto">
+      <div class="flex items-center justify-between xl:justify-start gap-2">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">📊</span>
+          <h1 class="title-neon text-xl sm:text-2xl font-black tracking-wider text-cyan-300">DIÁRIO DO LÉO</h1>
+          <span class="text-[10px] bg-cyan-950/80 text-cyan-300 px-2 py-1 rounded border border-cyan-700">NEON v6.5</span>
+        </div>
+        <button onclick="logout()" class="text-[10px] bg-red-950/80 hover:bg-red-900 text-red-300 px-3 py-1.5 rounded-lg border border-red-700/50 font-bold transition">Sair / Bloquear</button>
+      </div>
+      <p class="text-xs text-gray-400 mt-1 ml-9">Gestão profissional de Mini Índice • Ano 2026</p>
+    </div>
+
+    <!-- Cabeçalho com fonte de 14px no Res. Mesa (1º–15º) -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 w-full xl:w-auto">
+      <div class="metric rounded-xl p-3 text-center">
+        <span class="text-[10px] text-gray-400 block">TOTAL POSITIVO</span>
+        <span id="metric-positive" class="metric-value text-green-400 font-black text-sm">R$ 0,00</span>
+      </div>
+      <div class="metric rounded-xl p-3 text-center">
+        <span class="text-[10px] text-gray-400 block">TOTAL NEGATIVO</span>
+        <span id="metric-negative" class="metric-value text-red-400 font-black text-sm">R$ 0,00</span>
+      </div>
+      <div class="metric rounded-xl p-3 text-center">
+        <span class="text-[10px] text-gray-400 block">SALDO LÍQUIDO</span>
+        <span id="metric-net" class="metric-value text-cyan-300 font-black text-sm">R$ 0,00</span>
+      </div>
+      <div class="metric rounded-xl p-3 text-center">
+        <span class="text-[10px] text-gray-400 block">RES. MESA (1º–15º)</span>
+        <span id="metric-table-first15" class="metric-value text-green-300 font-black" style="font-size: 14px;">R$ 0,00</span>
+      </div>
+      <div class="metric rounded-xl p-3 text-center">
+        <span class="text-[10px] text-gray-400 block">RES. MESA (16º–FINAL)</span>
+        <span id="metric-table-last15" class="metric-value text-green-300 font-black text-sm">R$ 0,00</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav class="flex flex-wrap gap-2 border-b border-gray-800/70 pb-2">
+  <button onclick="switchTab('calendar')" id="tab-calendar" class="nav-btn nav-active px-4 py-2.5 rounded-xl text-xs font-bold">📅 Calendário</button>
+  <button onclick="switchTab('performance')" id="tab-performance" class="nav-btn bg-gray-900/80 text-gray-400 px-4 py-2.5 rounded-xl text-xs font-bold">📈 Performance</button>
+  <button onclick="switchTab('equity')" id="tab-equity" class="nav-btn bg-gray-900/80 text-gray-400 px-4 py-2.5 rounded-xl text-xs font-bold">📉 Equity & Gain/Loss</button>
+  <button onclick="switchTab('calc')" id="tab-calc" class="nav-btn bg-gray-900/80 text-gray-400 px-4 py-2.5 rounded-xl text-xs font-bold">🧮 Calculadora WIN</button>
+</nav>
+
+<!-- ABA CALENDÁRIO COM PAINEL À DIREITA -->
+<section id="view-calendar" class="glass rounded-2xl p-4 sm:p-6">
+  <div class="flex flex-col sm:flex-row justify-between gap-2 items-start sm:items-center mb-5">
+    <div>
+      <div class="flex items-center gap-3">
+        <select id="select-month" onchange="changeMonth(this.value)" class="rounded-xl px-3 py-1.5 text-sm font-black text-cyan-300 bg-gray-900 border border-cyan-500/30">
+          <option value="0">Janeiro 2026</option>
+          <option value="1">Fevereiro 2026</option>
+          <option value="2">Março 2026</option>
+          <option value="3">Abril 2026</option>
+          <option value="4">Maio 2026</option>
+          <option value="5">Junho 2026</option>
+          <option value="6">Julho 2026</option>
+          <option value="7">Agosto 2026</option>
+          <option value="8" selected>Setembro 2026</option>
+          <option value="9">Outubro 2026</option>
+          <option value="10">Novembro 2026</option>
+          <option value="11">Dezembro 2026</option>
+        </select>
+      </div>
+      <p class="text-[11px] text-gray-500 mt-1">Clique num dia para registar resultado, operações, contratos, estratégias e prints.</p>
+    </div>
+    <span class="text-[10px] text-cyan-400 border border-cyan-500/20 bg-cyan-500/[.04] rounded-lg px-2 py-1">● DADOS GUARDADOS NO NAVEGADOR</span>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-5">
+    <!-- Calendário ocupa 3 colunas -->
+    <div class="lg:col-span-3">
+      <div class="grid grid-cols-7 gap-1 sm:gap-2 text-center font-bold text-[10px] sm:text-xs text-gray-500 mb-2">
+        <div class="text-red-400">DOM</div><div>SEG</div><div>TER</div><div>QUA</div><div>QUI</div><div>SEX</div><div class="text-blue-400">SÁB</div>
+      </div>
+      <div class="max-h-[480px] overflow-y-auto pr-1">
+        <div id="calendar-grid" class="calendar-grid grid grid-cols-7 gap-1 sm:gap-2"></div>
+      </div>
+    </div>
+
+    <!-- Painel de Resumo Quinzenal & Mesa (1 coluna) -->
+    <div class="space-y-3 flex flex-col justify-between lg:col-span-1">
+      <div class="space-y-3">
+        <h3 class="text-xs font-black text-cyan-300 uppercase tracking-wider border-b border-gray-800 pb-2">Resumo Quinzenal & Mesa</h3>
+        
+        <!-- Saldo Líquido - Primeiros 15 dias -->
+        <div class="glass rounded-xl p-3 border border-cyan-500/20">
+          <span class="text-[10px] text-gray-400 block uppercase font-bold">Saldo Líquido (1º–15º)</span>
+          <span id="cal-balance-first15" class="text-sm font-black text-cyan-300 mt-1 block">R$ 0,00</span>
+          <span class="text-[9px] text-gray-500">Operações dias 01 a 15</span>
+        </div>
+
+        <!-- Resultado Líquido Mesa - Primeiros 15 dias (-30%) -> Fonte 14px aplicada -->
+        <div class="glass rounded-xl p-3 border border-green-500/20">
+          <span class="text-[10px] text-gray-400 block uppercase font-bold">Res. Líq. Mesa (1º–15º)</span>
+          <span id="cal-table-first15" class="font-black text-green-300 mt-1 block" style="font-size: 14px;">R$ 0,00</span>
+          <span class="text-[9px] text-gray-500">Saldo Q1 − 30% (se positivo)</span>
+        </div>
+
+        <!-- Saldo Líquido - Últimos 15 dias -->
+        <div class="glass rounded-xl p-3 border border-blue-500/20">
+          <span class="text-[10px] text-gray-400 block uppercase font-bold">Saldo Líquido (16º–Final)</span>
+          <span id="cal-balance-last15" class="text-sm font-black text-blue-300 mt-1 block">R$ 0,00</span>
+          <span class="text-[9px] text-gray-500">Operações dia 16 em diante</span>
+        </div>
+
+        <!-- Resultado Líquido Mesa - Últimos 15 dias (-30%) -->
+        <div class="glass rounded-xl p-3 border border-green-500/20">
+          <span class="text-[10px] text-gray-400 block uppercase font-bold">Res. Líq. Mesa (16º–Final)</span>
+          <span id="cal-table-last15" class="text-sm font-black text-green-300 mt-1 block">R$ 0,00</span>
+          <span class="text-[9px] text-gray-500">Saldo Q2 − 30% (se positivo)</span>
+        </div>
+
+        <!-- Resultado Líquido Mesa Total (Soma das Mesas) -->
+        <div class="glass rounded-xl p-3 border border-cyan-500/40">
+          <span class="text-[10px] text-cyan-300 block uppercase font-bold">Res. Líq. Mesa Total</span>
+          <span id="cal-table-total" class="text-sm font-black text-cyan-300 mt-1 block">R$ 0,00</span>
+          <span class="text-[9px] text-gray-500">Soma Q1 + Q2 (Mesa)</span>
+        </div>
+      </div>
+      <div class="text-[9px] text-gray-600 text-center pt-2">Diário do Léo • WIN</div>
+    </div>
+  </div>
+</section>
+
+<!-- ABA PERFORMANCE -->
+<section id="view-performance" class="hidden glass rounded-2xl p-4 sm:p-6 space-y-5">
+  <div class="glass rounded-2xl p-3 sm:p-5">
+    <h3 class="text-[11px] font-bold text-cyan-300 uppercase tracking-wider mb-2">Evolução Semanal</h3>
+    <div class="h-[320px]">
+      <canvas id="weeklyBarChart"></canvas>
+    </div>
+  </div>
+
+  <div>
+    <h3 class="text-[11px] font-bold text-cyan-300 uppercase tracking-wider mb-3">Colunas por Semana (Valor Total, Valor Líquido & Agenda Seg–Sex)</h3>
+    <div id="weekly-columns-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <!-- Preenchido dinamicamente via JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ABA EQUITY -->
+<section id="view-equity" class="hidden glass rounded-2xl p-4 sm:p-6 space-y-5">
+  <div>
+    <h2 class="text-lg font-black text-cyan-300 uppercase">Curva de evolução</h2>
+    <p class="text-xs text-gray-500">Passe o cursor sobre a curva para visualizar o Gain/Loss acumulado até ao dia.</p>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+    <div class="lg:col-span-2 chart-panel glass rounded-2xl p-3 sm:p-5">
+      <canvas id="equityChart"></canvas>
+    </div>
+    <div class="chart-panel glass rounded-2xl p-3 sm:p-5 flex flex-col items-center justify-center">
+      <h3 id="doughnut-title" class="text-[11px] font-bold text-cyan-300 uppercase tracking-wider mb-2">Gain vs Loss</h3>
+      <div class="w-full h-[300px]"><canvas id="gainLossDoughnut"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- NOVA ABA: CALCULADORA WIN COM 4 COLUNAS / CENÁRIOS -->
+<section id="view-calc" class="hidden glass rounded-2xl p-4 sm:p-6 space-y-5">
+  <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+    <div>
+      <h2 class="text-lg font-black text-cyan-300 uppercase">🧮 Calculadora WIN • Múltiplos Cenários</h2>
+      <p class="text-xs text-gray-500">Insira pontos e contratos em cada coluna para simular diferentes alvos e estratégias simultaneamente.</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Coluna 1 -->
+    <div class="glass rounded-xl p-4 border border-cyan-500/25 space-y-3">
+      <div class="flex justify-between items-center"><span class="text-xs font-black text-cyan-300">Cenário 1</span></div>
+      <div>
+        <label class="text-[9px] text-gray-400 block mb-1 font-bold">PONTOS</label>
+        <input type="number" id="calc-points-1" placeholder="Ex: 500" class="w-full rounded-lg p-2.5 text-xs" oninput="calcWinCol(1)">
+      </div>
+      <div>
+        <label class="text-[9px] text-gray-400 block mb-1 font-bold">CONTRATOS</label>
+        <input type="number" id="calc-contracts-1" value="1" placeholder="Ex: 5" class="w-full rounded-lg p-2.5 text-xs" oninput="calcWinCol(1)">
+      </div>
+      <div class="bg-black/40 border border-gray-800 rounded-lg p-3 space-y-1.5">
+        <div class="flex justify-between items-center text-xs">
+          <span class="text-gray-400">Bruto:</span>
+          <span id="calc-bruto-1" class="font-black text-cyan-300">R$ 0,00</span>
+        </div>
+        <div class="flex justify-between items-center text-xs">
+          <span class="text-gray-400">Mesa (-30%):</span>
+          <span id="calc-mesa-1" class="font-black text-green-300">R$ 0,00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coluna 2 -->
+    <div class="glass rounded-xl p-4 border border-cyan-500/25 space-y-3">
+      <div class="flex justify-between items-center"><span class="text-xs font-black text-cyan-300">Cenário 2</span></div>
+      <div>
+        <label class="text-[9px] text-gray-400 block mb-1 font-bold">PONTOS</label>
+        <input type="number" id="calc-points-2" placeholder="Ex: 500" class="w-full rounded-lg p-2.5 text-xs" oninput="calcWinCol(2)">
+      </div>
+      <div>
+        <label class="text-[9px] text-gray-400 block mb-1 font-bold">CONTRATOS</label>
+        <input type="number" id="calc-contracts-2" value="1" placeholder="Ex: 5" class="w-full rounded-lg p-2.5 text-xs" oninput="calcWinCol(2)">
+      </div>
+      <div class="bg-black/40 border border-gray-800 rounded-lg p-3 space-y-1.5">
+        <div class="flex justify-between items-center text-xs">
+          <span class="text-gray-400">Bruto:</span>
+          <span id="calc-bruto-2" class="font-black text-cyan-300">R$ 0,00</span>
+        </div>
+        <div class="flex justify-between items-center text-xs">
+          <span class="text-gray-400">Mesa (-30%):</span>
+          <span id="calc-mesa-2" class="font-black text-green-300">R$ 0,00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coluna 3 -->
+    <div class="glass rounded-xl p-4 border border-cyan-500/25 space-y-3">
+      <div class="flex justify-between items-center"><span class="text-xs font-black text-cyan-300">Cenário 3</span></div>
+      <div>
+        <label class="text-[9px] text-gray-400 block mb-1 font-bold">PONTOS</label>
+        <input type="number" id="calc-points-3" placeholder="Ex: 500" class="w-full rounded-lg p-2.5 text-xs" oninput="calcWinCol(3)">
+      </div>
+      <div>
+        <label class="text-[9px] text-gray-400 block mb-1 font-bold">CONTRATOS</label>
+        <input type="number" id="calc-contracts-3" value="1" placeholder="Ex: 5" class="w-full rounded-lg p-2.5 text-xs" oninput="calcWinCol(3)">
+      </div>
+      <div class="bg-black/40 border border-gray-800 rounded-lg p-3 space-y-1.5">
+        <div class="flex justify-between items-center text-xs">
+          <span class="text-gray-400">Bruto:</span>
+          <span id="calc-bruto-3" class="font-black text-cyan-300">R$ 0,00</span>
+        </div>
+        <div class="flex justify-between items-center text-xs">
+          <span class="text-gray-400">Mesa (-30%):</span>
+          <span id="calc-mesa-3" class="font-black text-green-300">R$ 0,00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coluna 4 -->
+    <div class="glass rounded-xl p-4 border border-cyan-500/25 space-y-3">
+      <div class="flex justify-between items-center"><span class="text-xs font-black text-cyan-300">Cenário 4</span></div>
+      <div>
+        <label class="text-[9px] text-gray-400 block mb-1 font-bold">PONTOS</label>
+        <input type="number" id="calc-points-4" placeholder="Ex: 500" class="w-full rounded-lg p-2.5 text-xs" oninput="calcWinCol(4)">
+      </div>
+      <div>
+        <label class="text-[9px] text-gray-400 block mb-1 font-bold">CONTRATOS</label>
+        <input type="number" id="calc-contracts-4" value="1" placeholder="Ex: 5" class="w-full rounded-lg p-2.5 text-xs" oninput="calcWinCol(4)">
+      </div>
+      <div class="bg-black/40 border border-gray-800 rounded-lg p-3 space-y-1.5">
+        <div class="flex justify-between items-center text-xs">
+          <span class="text-gray-400">Bruto:</span>
+          <span id="calc-bruto-4" class="font-black text-cyan-300">R$ 0,00</span>
+        </div>
+        <div class="flex justify-between items-center text-xs">
+          <span class="text-gray-400">Mesa (-30%):</span>
+          <span id="calc-mesa-4" class="font-black text-green-300">R$ 0,00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="text-[10px] text-gray-500 text-center pt-2">Cálculo padrão baseado em R$ 0,20 por ponto por contrato.</div>
+</section>
+
+</div>
+
+<!-- MODAL -->
+<div id="day-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden z-50 flex items-center justify-center p-3 sm:p-5">
+  <div class="glass rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto p-4 sm:p-6 border-cyan-400/30">
+    <div class="flex justify-between items-center pb-4 border-b border-gray-800 mb-4">
+      <h3 id="modal-title" class="text-lg font-black text-cyan-300">Detalhes do Dia</h3>
+      <button onclick="closeModal()" class="text-gray-500 hover:text-white text-2xl">&times;</button>
+    </div>
+
+    <div class="space-y-4">
+      <div class="rounded-xl border border-gray-800 bg-black/20 p-3 flex items-center justify-between gap-3">
+        <span class="text-xs text-gray-400">Ditar resultado por voz</span>
+        <button onclick="startVoiceRecognition()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-2 rounded-lg text-xs font-bold">🎙️ Falar</button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div><label class="text-[10px] text-gray-400 block mb-1">RESULTADO (R$)</label><input type="number" step="0.01" id="input-result" placeholder="Ex: 250 ou -100" class="w-full rounded-lg p-2.5 text-sm"></div>
+        <div><label class="text-[10px] text-gray-400 block mb-1">OPERAÇÕES</label><input type="number" id="input-trades" placeholder="Ex: 4" class="w-full rounded-lg p-2.5 text-sm"></div>
+        <div><label class="text-[10px] text-gray-400 block mb-1">CONTRATOS</label><input type="number" id="input-contracts" placeholder="Ex: 5" class="w-full rounded-lg p-2.5 text-sm"></div>
+      </div>
+
+      <div>
+        <label class="text-[10px] text-gray-400 block mb-2 font-bold uppercase tracking-wider">Estratégias utilizadas</label>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs bg-black/20 p-3 rounded-xl border border-gray-800 max-h-44 overflow-y-auto">
+          <label><input type="checkbox" class="strat-check accent-cyan-500" value="Linha com imbalance venda"> Linha com imbalance venda</label>
+          <label><input type="checkbox" class="strat-check accent-cyan-500" value="Linha com imbalance de compra"> Linha com imbalance de compra</label>
+          <label><input type="checkbox" class="strat-check accent-cyan-500" value="Linha de alvo"> Linha de alvo</label>
+          <label><input type="checkbox" class="strat-check accent-cyan-500" value="Linha de rompimento importante"> Linha de rompimento importante</label>
+          <label><input type="checkbox" class="strat-check accent-cyan-500" value="Linha de alvo 1"> Linha de alvo 1</label>
+          <label><input type="checkbox" class="strat-check accent-cyan-500" value="Linha de alvo total"> Linha de alvo total</label>
+          <label><input type="checkbox" class="strat-check accent-cyan-500" value="Linha fundo do 60"> Linha fundo do 60</label>
+          <label><input type="checkbox" class="strat-check accent-cyan-500" value="Linha topo do 60"> Linha topo do 60</label>
+        </div>
+      </div>
+
+      <div>
+        <div class="flex justify-between mb-1">
+          <label class="text-[10px] text-gray-400 font-bold uppercase">Prints, Gain/Loss e notas</label>
+          <span id="image-counter" class="text-[10px] text-cyan-400 font-bold">0 / 5</span>
+        </div>
+        <div id="paste-zone" tabindex="0" class="border-2 border-dashed border-gray-800 rounded-xl p-4 text-center cursor-pointer">
+          <p class="text-xs text-gray-500">Clique aqui e pressione <kbd class="bg-gray-800 px-1.5 py-0.5 rounded text-cyan-400">Ctrl+V</kbd> para colar um print.</p>
+        </div>
+        <div id="images-preview-container" class="space-y-3 mt-2"></div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-3 border-t border-gray-800">
+        <button onclick="closeModal()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl text-xs font-bold">Cancelar</button>
+        <button onclick="saveDayData()" class="px-5 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-xl text-xs font-bold shadow-lg shadow-cyan-900/30">Guardar Dados</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- SISTEMA DE SENHA / LICENÇA ---
+const APP_PASSWORD = "123456";
+
+function validatePassword() {
+  const passInput = document.getElementById('access-password').value;
+  const errorMsg = document.getElementById('error-msg');
+  
+  if (passInput === APP_PASSWORD) {
+    localStorage.setItem('win_system_auth', 'true');
+    initApp();
+  } else {
+    errorMsg.classList.remove('hidden');
+    document.getElementById('access-password').value = '';
+  }
+}
+
+function logout() {
+  localStorage.removeItem('win_system_auth');
+  document.getElementById('main-app').classList.add('hidden');
+  document.body.classList.add('flex', 'items-center', 'justify-center');
+  document.getElementById('auth-screen').classList.remove('hidden');
+  document.getElementById('access-password').value = '';
+}
+
+document.getElementById('access-password').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') validatePassword();
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('win_system_auth') === 'true') {
+    initApp();
+  }
+});
+
+function initApp() {
+  document.getElementById('auth-screen').classList.add('hidden');
+  document.body.classList.remove('flex', 'items-center', 'justify-center');
+  document.getElementById('main-app').classList.remove('hidden');
+  renderCalendar();
+}
+
+
+// --- LÓGICA DO DIÁRIO DE TRADING ---
+const currentYear = 2026;
+let currentMonth = 8;
+let tradingData = {};
+
+function getStorageKey() {
+  return `win_trading_data_${currentYear}_${currentMonth}`;
+}
+
+function loadMonthData() {
+  tradingData = JSON.parse(localStorage.getItem(getStorageKey()) || '{}');
+}
+
+function saveMonthData() {
+  localStorage.setItem(getStorageKey(), JSON.stringify(tradingData));
+}
+
+function changeMonth(m) {
+  currentMonth = parseInt(m);
+  loadMonthData();
+  renderCalendar();
+  if(!document.getElementById('view-performance').classList.contains('hidden')) renderPerformance();
+  if(!document.getElementById('view-equity').classList.contains('hidden')) renderCharts();
+}
+
+let currentDay=null,currentDayImages=[],equityChartInstance=null,doughnutChartInstance=null,weeklyBarChartInstance=null;
+
+function getDaysInMonth(year, month){
+  return new Date(year, month + 1, 0).getDate();
+}
+
+function brl(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+function sumResults(start=1, end=null){
+  const totalDays = getDaysInMonth(currentYear, currentMonth);
+  const actualEnd = end ? Math.min(end, totalDays) : totalDays;
+  let s=0;
+  for(let d=start; d<=actualEnd; d++){
+    const r=parseFloat(tradingData[d]?.result);
+    if(!isNaN(r)) s+=r;
+  }
+  return s;
+}
+function netDesk(v){return v>0?v*0.70:v;}
+
+function switchTab(tab){
+  const tabs=['calendar','performance','equity','calc'];
+  tabs.forEach(t=>{
+    document.getElementById('tab-'+t).className='nav-btn bg-gray-900/80 text-gray-400 px-4 py-2.5 rounded-xl text-xs font-bold';
+    document.getElementById('view-'+t).classList.add('hidden');
+  });
+  document.getElementById('tab-'+tab).className='nav-btn nav-active px-4 py-2.5 rounded-xl text-xs font-bold';
+  document.getElementById('view-'+tab).classList.remove('hidden');
+  if(tab==='performance')renderPerformance();
+  if(tab==='equity')renderCharts();
+}
+
+// --- LÓGICA DA CALCULADORA WIN (4 COLUNAS) ---
+function calcWinCol(id) {
+  const pts = parseFloat(document.getElementById(`calc-points-${id}`).value) || 0;
+  const cts = parseInt(document.getElementById(`calc-contracts-${id}`).value) || 1;
+  const bruto = pts * cts * 0.20;
+  const mesa = bruto > 0 ? bruto * 0.70 : bruto;
+  
+  const brutoEl = document.getElementById(`calc-bruto-${id}`);
+  const mesaEl = document.getElementById(`calc-mesa-${id}`);
+  
+  brutoEl.textContent = brl(bruto);
+  brutoEl.className = `font-black ${bruto >= 0 ? 'text-cyan-300' : 'text-red-400'}`;
+  
+  mesaEl.textContent = brl(mesa);
+  mesaEl.className = `font-black ${mesa >= 0 ? 'text-green-300' : 'text-red-400'}`;
+}
+
+function renderCalendar(){
+  loadMonthData();
+  const grid=document.getElementById('calendar-grid');
+  let html='';
+  const totalDays = getDaysInMonth(currentYear, currentMonth);
+  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+  
+  for(let i=0; i<firstDay; i++) {
+    html+='<div class="rounded-xl min-h-[94px] sm:min-h-[124px] bg-black/10 border border-gray-900/70"></div>';
+  }
+
+  let pos=0, neg=0, tradesTotal=0;
+  const monthNamesAbr = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+  const monthStr = monthNamesAbr[currentMonth];
+
+  for(let d=1; d<=totalDays; d++){
+    const data=tradingData[d]||{};
+    const r=parseFloat(data.result);
+    let cls='day-card';
+    if(!isNaN(r)&&r>0){cls+=' neon-green';pos+=r}
+    if(!isNaN(r)&&r<0){cls+=' neon-red';neg+=Math.abs(r)}
+    if(data.trades)tradesTotal+=parseInt(data.trades)||0;
+    const imgs=data.images||[];
+    const gains=imgs.filter(x=>x.status==='gain').length;
+    const losses=imgs.filter(x=>x.status==='loss').length;
+    const tagged=gains+losses;
+    const bar=tagged?`<div class="mt-1 h-1 rounded-full overflow-hidden bg-gray-900 flex"><span class="bg-green-400" style="width:${gains/tagged*100}%"></span><span class="bg-red-500" style="width:${losses/tagged*100}%"></span></div>`:'';
+    
+    html+=`<div onclick="openModal(${d})" class="${cls} rounded-xl p-2 flex flex-col justify-between overflow-hidden">
+      <div class="flex justify-between"><span class="text-[11px] font-black text-gray-300">${String(d).padStart(2,'0')}</span><span class="text-[8px] text-gray-600">${monthStr}</span></div>
+      <div>
+        ${!isNaN(r)?`<div class="text-[11px] font-black ${r>=0?'text-green-400':'text-red-400'}">${brl(r)}</div>`:''}
+        ${bar}
+        <div class="text-[8px] text-gray-500 mt-1">Op: ${data.trades||0} • C: ${data.contracts||0} ${imgs.length?`• 📷${imgs.length}`:''}</div>
+      </div>
+      <div class="text-[8px] text-gray-600 text-right">Editar +</div>
+    </div>`;
+  }
+  grid.innerHTML=html;
+  const net=pos-neg;
+  document.getElementById('metric-positive').textContent=brl(pos);
+  document.getElementById('metric-negative').textContent=brl(neg);
+  const netEl=document.getElementById('metric-net');netEl.textContent=brl(net);netEl.className=`metric-value font-black text-sm ${net>=0?'text-green-400':'text-red-400'}`;
+  
+  const first15 = sumResults(1, 15);
+  const tableFirst15 = netDesk(first15);
+  const last15 = sumResults(16, totalDays);
+  const tableLast15 = netDesk(last15);
+  const tableTotal = tableFirst15 + tableLast15;
+  
+  document.getElementById('cal-balance-first15').textContent = brl(first15);
+  document.getElementById('cal-table-first15').textContent = brl(tableFirst15);
+  document.getElementById('cal-balance-last15').textContent = brl(last15);
+  document.getElementById('cal-table-last15').textContent = brl(tableLast15);
+  document.getElementById('cal-table-total').textContent = brl(tableTotal);
+
+  document.getElementById('metric-table-first15').textContent = brl(tableFirst15);
+  document.getElementById('metric-table-last15').textContent = brl(tableLast15);
+  
+  document.getElementById('cal-balance-first15').className = `text-sm font-black mt-1 block ${first15>=0?'text-cyan-300':'text-red-400'}`;
+  document.getElementById('cal-table-first15').className = `font-black mt-1 block ${tableFirst15>=0?'text-green-300':'text-red-400'}`;
+  document.getElementById('cal-balance-last15').className = `text-sm font-black mt-1 block ${last15>=0?'text-blue-300':'text-red-400'}`;
+  document.getElementById('cal-table-last15').className = `text-sm font-black mt-1 block ${tableLast15>=0?'text-green-300':'text-red-400'}`;
+  document.getElementById('cal-table-total').className = `text-sm font-black mt-1 block ${tableTotal>=0?'text-cyan-300':'text-red-400'}`;
+
+  document.getElementById('metric-table-first15').className = `metric-value font-black ${tableFirst15>=0?'text-green-300':'text-red-400'}`;
+  document.getElementById('metric-table-last15').className = `metric-value font-black text-sm ${tableLast15>=0?'text-green-300':'text-red-400'}`;
+}
+
+function renderPerformance(){
+  loadMonthData();
+  const totalDays = getDaysInMonth(currentYear, currentMonth);
+  let weeks=[];
+  let start=1, weekNum=1;
+  while(start <= totalDays){
+    let end = Math.min(start + 6, totalDays);
+    weeks.push({ weekNum, start, end });
+    start = end + 1;
+    weekNum++;
+  }
+
+  const weeklyResults = weeks.map(w=>{
+    let result=0;
+    for(let d=w.start; d<=w.end; d++){
+      const x=tradingData[d];if(!x)continue;
+      const r=parseFloat(x.result);if(!isNaN(r))result+=r;
+    }
+    return {name:`Semana ${w.weekNum}`, result};
+  });
+
+  const canvas=document.getElementById('weeklyBarChart');
+  if(canvas){
+    if(weeklyBarChartInstance)weeklyBarChartInstance.destroy();
+    weeklyBarChartInstance=new Chart(canvas.getContext('2d'),{
+      type:'bar',
+      data:{
+        labels:weeklyResults.map(w=>w.name),
+        datasets:[{
+          label:'Resultado semanal',
+          data:weeklyResults.map(w=>w.result),
+          backgroundColor:weeklyResults.map(w=>w.result>=0?'rgba(0,255,136,.75)':'rgba(255,56,100,.75)'),
+          borderColor:weeklyResults.map(w=>w.result>=0?'#00ff88':'#ff3864'),
+          borderWidth:1.5,
+          borderRadius:8
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        scales:{
+          x:{grid:{color:'rgba(31,41,55,.3)'},ticks:{color:'#9ca3af',font:{size:11,weight:'bold'}}},
+          y:{
+            grid:{color:'rgba(31,41,55,.35)'},
+            ticks:{color:'#9ca3af',callback:v=>brl(v)}
+          }
+        },
+        plugins:{
+          legend:{display:false},
+          tooltip:{callbacks:{label:c=>` ${brl(c.raw)}`}}
+        }
+      },
+      plugins:[{
+        id:'weeklyBarValuesCenter',
+        afterDatasetsDraw(chart){
+          const ctx=chart.ctx;
+          ctx.save();
+          ctx.font='bold 12px Inter, sans-serif';
+          ctx.textAlign='center';
+          ctx.textBaseline='middle';
+          chart.data.datasets.forEach((dataset,di)=>{
+            const meta=chart.getDatasetMeta(di);
+            meta.data.forEach((bar,i)=>{
+              const value=dataset.data[i]||0;
+              ctx.fillStyle='#ffffff';
+              const y=(bar.y + bar.base)/2;
+              ctx.fillText(brl(value),bar.x,y);
+            });
+          });
+          ctx.restore();
+        }
+      }]
+    });
+  }
+
+  const container = document.getElementById('weekly-columns-container');
+  if(container){
+    let html = '';
+    weeks.forEach(w => {
+      let weekTotal = 0;
+      for(let d = w.start; d <= w.end; d++) {
+        const r = parseFloat(tradingData[d]?.result);
+        if(!isNaN(r)) weekTotal += r;
+      }
+      const weekNet = netDesk(weekTotal);
+
+      html += `
+        <div class="glass rounded-xl p-4 flex flex-col justify-between border border-cyan-500/20 space-y-3">
+          <div class="border-b border-gray-800 pb-3">
+            <div class="flex justify-between items-center mb-2">
+              <span class="font-black text-cyan-300 text-sm">Semana ${w.weekNum}</span>
+              <span class="text-[10px] text-gray-400">Dias ${String(w.start).padStart(2,'0')} a ${String(w.end).padStart(2,'0')}</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 mt-2">
+              <div class="bg-black/40 border border-gray-800 rounded-lg p-2 text-center">
+                <span class="text-[9px] text-gray-400 block uppercase font-bold">Valor Total</span>
+                <span class="font-black text-xs ${weekTotal >= 0 ? 'text-green-400' : 'text-red-400'}">${brl(weekTotal)}</span>
+              </div>
+              <div class="bg-black/40 border border-gray-800 rounded-lg p-2 text-center">
+                <span class="text-[9px] text-gray-400 block uppercase font-bold">Valor Líquido</span>
+                <span class="font-black text-xs ${weekNet >= 0 ? 'text-green-300' : 'text-red-400'}">${brl(weekNet)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Segunda a Sexta-feira</div>
+            <div class="space-y-1.5 text-xs">
+      `;
+
+      const weekdaysInfo = [
+        { id: 1, name: 'Segunda' },
+        { id: 2, name: 'Terça' },
+        { id: 3, name: 'Quarta' },
+        { id: 4, name: 'Quinta' },
+        { id: 5, name: 'Sexta' }
+      ];
+
+      weekdaysInfo.forEach(wd => {
+        let targetDay = null;
+        for(let d = w.start; d <= w.end; d++) {
+          const dateObj = new Date(currentYear, currentMonth, d);
+          if(dateObj.getDay() === wd.id) {
+            targetDay = d;
+            break;
+          }
+        }
+
+        if(targetDay !== null) {
+          const data = tradingData[targetDay] || {};
+          const r = parseFloat(data.result);
+          const hasVal = !isNaN(r);
+          
+          let wdGains = 0, wdLosses = 0;
+          for(let d = 1; d <= totalDays; d++) {
+            const dt = new Date(currentYear, currentMonth, d);
+            if(dt.getDay() === wd.id) {
+              const res = parseFloat(tradingData[d]?.result);
+              if(!isNaN(res)) {
+                if(res > 0) wdGains++;
+                else if(res < 0) wdLosses++;
+              }
+            }
+          }
+          const totalWd = wdGains + wdLosses;
+          const gPct = totalWd > 0 ? (wdGains / totalWd) * 100 : 0;
+          const lPct = totalWd > 0 ? (wdLosses / totalWd) * 100 : 0;
+
+          html += `
+            <div class="bg-black/30 border border-gray-800/80 rounded-lg p-2 flex justify-between items-center">
+              <div>
+                <div class="font-bold text-gray-300 text-[11px]">${wd.name} <span class="text-[9px] text-gray-500">(${String(targetDay).padStart(2,'0')})</span></div>
+                <div class="text-[9px] text-gray-400">Gain: <span class="text-green-400 font-bold">${gPct.toFixed(0)}%</span> | Loss: <span class="text-red-400 font-bold">${lPct.toFixed(0)}%</span></div>
+              </div>
+              <div class="text-right">
+                <div class="font-black text-[11px] ${hasVal ? (r >= 0 ? 'text-green-400' : 'text-red-400') : 'text-gray-600'}">${hasVal ? brl(r) : '—'}</div>
+                <div class="text-[8px] ${hasVal ? (r >= 0 ? 'text-green-400' : 'text-red-400') : 'text-gray-600'}">${hasVal ? (r >= 0 ? '🟢 GAIN' : '🔴 LOSS') : 'Sem reg.'}</div>
+              </div>
+            </div>
+          `;
+        } else {
+          html += `
+            <div class="bg-black/10 border border-gray-900/50 rounded-lg p-2 flex justify-between items-center opacity-40">
+              <div>
+                <div class="font-bold text-gray-400 text-[11px]">${wd.name}</div>
+                <div class="text-[9px] text-gray-600">Fora do período</div>
+              </div>
+              <div class="text-right text-[10px] text-gray-600">—</div>
+            </div>
+          `;
+        }
+      });
+
+      html += `
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+  }
+}
+
+const verticalLinePlugin={id:'verticalLine',afterDraw(chart){
+  if(chart.tooltipIndex==null)return;const p=chart.getDatasetMeta(0).data[chart.tooltipIndex];if(!p)return;
+  const c=chart.ctx;c.save();c.beginPath();c.moveTo(p.x,chart.scales.y.top);c.lineTo(p.x,chart.scales.y.bottom);c.setLineDash([4,4]);c.strokeStyle='rgba(0,246,255,.55)';c.stroke();c.restore();
+}};
+
+const equityValuesPlugin={
+  id:'equityValuesPlugin',
+  afterDatasetsDraw(chart){
+    const ctx=chart.ctx;
+    ctx.save();
+    ctx.font='bold 12px Inter, sans-serif';
+    ctx.textAlign='center';
+    
+    chart.data.datasets.forEach((dataset,di)=>{
+      const meta=chart.getDatasetMeta(di);
+      meta.data.forEach((point,i)=>{
+        if((i+1)%5===0 || i === meta.data.length - 1){
+          const val=dataset.data[i]||0;
+          if(val !== 0){
+            ctx.fillStyle= di === 0 ? '#00f6ff' : '#ff3864';
+            const yOffset = di === 0 ? -26 : 32;
+            ctx.fillText(brl(val), point.x, point.y + yOffset);
+          }
+        }
+      });
+    });
+    ctx.restore();
+  }
+};
+
+function renderCharts(){
+  loadMonthData();
+  const totalDays = getDaysInMonth(currentYear, currentMonth);
+  const ce=document.getElementById('equityChart').getContext('2d');
+  const cd=document.getElementById('gainLossDoughnut').getContext('2d');
+  if(equityChartInstance)equityChartInstance.destroy();
+  if(doughnutChartInstance)doughnutChartInstance.destroy();
+
+  const monthNamesAbr = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const mStr = monthNamesAbr[currentMonth];
+
+  let labels=[],equity=[],loss=[],cum=0,cumLoss=0;
+  for(let d=1;d<=totalDays;d++){
+    labels.push(String(d).padStart(2,'0')+'/'+mStr);
+    const r=parseFloat(tradingData[d]?.result);
+    if(!isNaN(r)){cum+=r;if(r<0)cumLoss+=Math.abs(r)}
+    equity.push(cum);
+    loss.push(cumLoss);
+  }
+  const grad=ce.createLinearGradient(0,0,0,420);grad.addColorStop(0,'rgba(0,246,255,.25)');grad.addColorStop(1,'rgba(0,246,255,0)');
+  
+  equityChartInstance=new Chart(ce,{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'Capital acumulado',data:equity,borderColor:'#00f6ff',backgroundColor:grad,borderWidth:2,pointRadius:3,pointHoverRadius:6,fill:true,tension:.3},
+      {label:'Loss acumulado',data:loss,borderColor:'#ff3864',borderDash:[5,5],borderWidth:1.5,pointRadius:3,fill:false,tension:.3}
+    ]},
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      onHover:(e,a,c)=>{if(a.length){c.tooltipIndex=a[0].index;updateDoughnut(a[0].index+1, totalDays)}else{c.tooltipIndex=null;updateDoughnut(totalDays, totalDays)}c.draw()},
+      plugins:{
+        legend:{labels:{color:'#9ca3af',font:{size:10,weight:'bold'}}},
+        tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${brl(c.raw)}`}}
+      },
+      scales:{
+        x:{grid:{color:'rgba(31,41,55,.3)'},ticks:{color:'#9ca3af',font:{size:9}}},
+        y:{grid:{color:'rgba(31,41,55,.35)'},ticks:{color:'#9ca3af',callback:v=>'R$ '+v}}
+      }
+    },
+    plugins:[verticalLinePlugin, equityValuesPlugin]
+  });
+
+  const doughnutCenterTextPlugin={
+    id:'doughnutCenterText',
+    afterDraw(chart){
+      const {width, height, ctx}=chart;
+      ctx.save();
+      const g = chart.gainVal || 0;
+      const l = chart.lossVal || 0;
+
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+
+      ctx.font='bold 20px Inter, sans-serif';
+      ctx.fillStyle='#00ff88';
+      ctx.fillText(brl(g), width / 2, (height / 2) - 14);
+
+      ctx.fillStyle='#ff3864';
+      ctx.fillText(brl(l), width / 2, (height / 2) + 14);
+
+      ctx.restore();
+    }
+  };
+
+  doughnutChartInstance=new Chart(cd,{
+    type:'doughnut',
+    data:{
+      labels:['Gain','Loss'],
+      datasets:[{data:[1,1],backgroundColor:['#00ff88','#ff3864'],borderWidth:0,hoverOffset:7}]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      cutout:'72%',
+      plugins:{
+        legend:{position:'bottom',labels:{color:'#9ca3af',font:{size:10,weight:'bold'},padding:16}},
+        tooltip:{callbacks:{label:c=>` ${c.label}: ${brl(c.raw)}`}}
+      }
+    },
+    plugins:[doughnutCenterTextPlugin]
+  });
+  updateDoughnut(totalDays, totalDays);
+}
+
+function updateDoughnut(maxDay, totalDays){
+  let g=0,l=0;
+  for(let d=1;d<=maxDay;d++){
+    const r=parseFloat(tradingData[d]?.result);
+    if(!isNaN(r)){if(r>0)g+=r;else l+=Math.abs(r)}
+  }
+  doughnutChartInstance.data.datasets[0].data=[g||.01,l||.01];
+  doughnutChartInstance.gainVal = g;
+  doughnutChartInstance.lossVal = l;
+  doughnutChartInstance.update('none');
+  const monthFullNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  document.getElementById('doughnut-title').textContent = maxDay===totalDays ? `Gain vs Loss • ${monthFullNames[currentMonth]} Total` : `Gain vs Loss • Até ${String(maxDay).padStart(2,'0')}/${String(currentMonth+1).padStart(2,'0')}`;
+}
+
+function openModal(day){
+  currentDay=day;const d=tradingData[day]||{};
+  const monthFullNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  document.getElementById('modal-title').textContent=`Detalhes do Dia — ${String(day).padStart(2,'0')}/${String(currentMonth+1).padStart(2,'0')}/${currentYear} (${monthFullNames[currentMonth]})`;
+  document.getElementById('input-result').value=d.result??'';
+  document.getElementById('input-trades').value=d.trades??'';
+  document.getElementById('input-contracts').value=d.contracts??'';
+  document.querySelectorAll('.strat-check').forEach(c=>c.checked=(d.strategies||[]).includes(c.value));
+  currentDayImages=[...(d.images||[])];renderImagesPreview();
+  document.getElementById('day-modal').classList.remove('hidden');
+}
+function closeModal(){document.getElementById('day-modal').classList.add('hidden');currentDay=null;renderCalendar()}
+function saveDayData(){
+  if(!currentDay)return;
+  const r=document.getElementById('input-result').value;
+  const t=document.getElementById('input-trades').value;
+  const c=document.getElementById('input-contracts').value;
+  const strategies=[...document.querySelectorAll('.strat-check:checked')].map(x=>x.value);
+  tradingData[currentDay]={result:r===''?'':parseFloat(r),trades:t===''?'':parseInt(t),contracts:c===''?'':parseInt(t),strategies,images:currentDayImages};
+  saveMonthData();
+  closeModal();
+}
+
+const pasteZone=document.getElementById('paste-zone');
+pasteZone.addEventListener('click',()=>pasteZone.focus());
+pasteZone.addEventListener('paste',e=>{
+  const items=(e.clipboardData||e.originalEvent?.clipboardData)?.items||[];
+  for(const item of items)if(item.type.startsWith('image/')){
+    if(currentDayImages.length>=5){alert('Máximo de 5 imagens por dia.');return}
+    const reader=new FileReader();reader.onload=ev=>{currentDayImages.push({url:ev.target.result,status:'gain',note:''});renderImagesPreview()};reader.readAsDataURL(item.getAsFile());e.preventDefault();break;
+  }
+});
+
+function renderImagesPreview(){
+  document.getElementById('image-counter').textContent=`${currentDayImages.length} / 5`;
+  const box=document.getElementById('images-preview-container');
+  if(!currentDayImages.length){box.innerHTML='<p class="text-[10px] text-gray-600 text-center py-2">Nenhum print adicionado.</p>';return}
+  box.innerHTML=currentDayImages.map((im,i)=>`<div class="glass rounded-xl p-3">
+    <div class="flex justify-between items-center mb-2"><b class="text-[10px] text-cyan-300">PRINT #${i+1}</b>
+    <div class="flex gap-2"><select onchange="updateImageStatus(${i},this.value)" class="rounded px-2 py-1 text-[10px]">
+      <option value="gain" ${im.status==='gain'?'selected':''}>🟢 Gain</option><option value="loss" ${im.status==='loss'?'selected':''}>🔴 Loss</option>
+    </select><button onclick="removeImage(${i})" class="text-red-400 text-[10px] font-bold">Remover</button></div></div>
+    <div class="flex gap-3"><img src="${im.url}" class="w-24 h-16 object-cover rounded border border-gray-800 cursor-pointer" onclick="window.open('${im.url}')">
+    <textarea oninput="updateImageNote(${i},this.value)" placeholder="Notas sobre a operação..." class="w-full rounded-lg p-2 text-xs h-16 resize-none">${im.note||''}</textarea></div>
+  </div>`).join('');
+}
+function updateImageStatus(i,s){currentDayImages[i].status=s}
+function updateImageNote(i,n){currentDayImages[i].note=n}
+function removeImage(i){currentDayImages.splice(i,1);renderImagesPreview()}
+function startVoiceRecognition(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){alert('O seu navegador não suporta reconhecimento de voz.');return}
+  const rec=new SR();rec.lang='pt-PT';rec.start();
+  rec.onresult=e=>{const txt=e.results[0][0].transcript.toLowerCase(),m=txt.match(/-?\d+[\.,]?\d*/);if(m)document.getElementById('input-result').value=parseFloat(m[0].replace(',','.'))}
+}
+</script>
+</body>
+</html>
