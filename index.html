@@ -1,973 +1,499 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Diário do Léo — Mini Índice WIN</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Diário do Léo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{
-  --cyan:#00f6ff;--blue:#1683ff;--green:#00ff88;--red:#ff3864;
-  --purple:#8b5cf6;--bg:#020617;--panel:rgba(7,15,31,.82);
+  --bg:#050816;--card:rgba(10,18,40,.78);--ink:#E6F0FF;--mute:#7F93B5;--line:rgba(0,246,255,.16);--soft:rgba(0,246,255,.06);
+  --acc:#00F6FF;--acc-soft:rgba(0,246,255,.10);--gain:#00FF88;--gain-soft:rgba(0,255,136,.09);--loss:#FF3864;--loss-soft:rgba(255,56,100,.10);color-scheme:dark;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
 }
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{
-  margin:0;background:
-  radial-gradient(circle at 8% 5%,rgba(0,246,255,.10),transparent 25%),
-  radial-gradient(circle at 92% 8%,rgba(139,92,246,.10),transparent 25%),
-  radial-gradient(circle at 50% 100%,rgba(22,131,255,.08),transparent 30%),
-  var(--bg);color:#e5e7eb;font-family:Inter,ui-sans-serif,system-ui,sans-serif;
-}
-body:before{
-  content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:.12;
-  background-image:linear-gradient(rgba(0,246,255,.08) 1px,transparent 1px),
-                   linear-gradient(90deg,rgba(0,246,255,.08) 1px,transparent 1px);
-  background-size:42px 42px;
-  mask-image:linear-gradient(to bottom,#000,transparent);
-}
-.glass{
-  background:linear-gradient(145deg,rgba(10,20,40,.92),rgba(2,6,23,.90));
-  border:1px solid rgba(0,246,255,.15);
-  box-shadow:0 0 30px rgba(0,246,255,.04),inset 0 0 25px rgba(0,246,255,.018);
-  backdrop-filter:blur(14px);
-}
-.neon-header{position:relative;overflow:hidden;border-color:rgba(0,246,255,.32)}
-.neon-header:after{
-  content:"";position:absolute;top:0;left:-55%;width:35%;height:2px;
-  background:linear-gradient(90deg,transparent,var(--cyan),transparent);
-  animation:scan 5s linear infinite;
-}
-@keyframes scan{to{left:140%}}
-.metric{
-  background:rgba(2,6,23,.72);border:1px solid rgba(0,246,255,.12);
-  transition:.25s;position:relative;overflow:hidden
-}
-.metric:hover{transform:translateY(-3px);border-color:rgba(0,246,255,.42);box-shadow:0 0 18px rgba(0,246,255,.10)}
-.nav-btn{border:1px solid rgba(0,246,255,.10);transition:.2s}
-.nav-btn:hover{transform:translateY(-1px);border-color:rgba(0,246,255,.35)}
-.nav-active{background:linear-gradient(135deg,#0891b2,#2563eb)!important;box-shadow:0 0 18px rgba(0,246,255,.18)}
-.day-card{
-  min-height:124px;background:linear-gradient(145deg,rgba(8,15,32,.94),rgba(2,6,23,.92));
-  border:1px solid rgba(0,246,255,.10);transition:.25s;cursor:pointer
-}
-.day-card:hover{transform:translateY(-4px);border-color:rgba(0,246,255,.38);box-shadow:0 0 20px rgba(0,246,255,.10)}
-.neon-green{border:1px solid rgba(0,255,136,.75)!important;box-shadow:0 0 15px rgba(0,255,136,.16),inset 0 0 16px rgba(0,255,136,.03)}
-.neon-red{border:1px solid rgba(255,56,100,.75)!important;box-shadow:0 0 15px rgba(255,56,100,.16),inset 0 0 16px rgba(255,56,100,.03)}
-.chart-panel{min-height:420px}
-input,textarea,select{
-  background:rgba(2,6,23,.86)!important;border:1px solid rgba(0,246,255,.14)!important;
-  color:#f3f4f6;outline:none;transition:.2s
-}
-input:focus,textarea:focus,select:focus{border-color:var(--cyan)!important;box-shadow:0 0 0 2px rgba(0,246,255,.07),0 0 14px rgba(0,246,255,.10)}
-::-webkit-scrollbar{width:8px;height:8px}
-::-webkit-scrollbar-track{background:#020617}
-::-webkit-scrollbar-thumb{background:linear-gradient(#0891b2,#2563eb);border-radius:10px}
-::selection{background:rgba(0,246,255,.25)}
-@media(max-width:640px){
-  body{padding:10px!important}.day-card{min-height:94px;padding:7px!important}
-  .calendar-grid{gap:4px!important}.chart-panel{min-height:350px}
-}
+body{margin:0;background:radial-gradient(circle at 8% 4%,rgba(0,246,255,.14),transparent 28%),radial-gradient(circle at 92% 8%,rgba(139,92,246,.14),transparent 28%),radial-gradient(circle at 50% 100%,rgba(22,131,255,.12),transparent 32%),var(--bg);background-attachment:fixed;color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
+.hidden{display:none!important}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:.5;background-image:linear-gradient(rgba(0,246,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(0,246,255,.06) 1px,transparent 1px);background-size:44px 44px;-webkit-mask-image:linear-gradient(to bottom,#000,transparent 85%);mask-image:linear-gradient(to bottom,#000,transparent 85%)}
+.card{backdrop-filter:blur(12px);box-shadow:0 0 28px rgba(0,246,255,.05),inset 0 0 22px rgba(0,246,255,.02)}
+.gain{text-shadow:0 0 12px rgba(0,255,136,.35)}.loss{text-shadow:0 0 12px rgba(255,56,100,.35)}
+.logo{color:#021018;box-shadow:0 0 18px rgba(0,246,255,.5)}
+.btn:hover{border-color:var(--acc);box-shadow:0 0 14px rgba(0,246,255,.18)}
+.btn.pri{background:linear-gradient(135deg,#00D9E6,#2563EB);border-color:transparent;color:#fff;box-shadow:0 0 18px rgba(0,246,255,.28)}
+.tab.on{background:linear-gradient(135deg,#0891B2,#2563EB);color:#fff;box-shadow:0 0 16px rgba(0,246,255,.25)}
+.kpi.main{background:linear-gradient(135deg,#0891B2,#2563EB);border-color:rgba(0,246,255,.5);box-shadow:0 0 26px rgba(0,246,255,.3)}
+.kpi.main b{text-shadow:none}
+.day:hover{box-shadow:0 0 18px rgba(0,246,255,.2)}
+.day.g{border:1px solid rgba(0,255,136,.7);box-shadow:0 0 14px rgba(0,255,136,.16),inset 0 0 14px rgba(0,255,136,.04)}
+.day.l{border:1px solid rgba(255,56,100,.7);box-shadow:0 0 14px rgba(255,56,100,.16),inset 0 0 14px rgba(255,56,100,.04)}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(0,246,255,.12),0 0 14px rgba(0,246,255,.2)}
+select option{background:#0A1228;color:#E6F0FF}
+#modal .m{background:#0A1228;border-color:rgba(0,246,255,.35);box-shadow:0 0 40px rgba(0,246,255,.15)}
+#auth .box{border-color:rgba(0,246,255,.35);box-shadow:0 0 40px rgba(0,246,255,.12)}
+.mini{border:1px solid var(--line)}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 48px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px}
+.gain{color:var(--gain)}.loss{color:var(--loss)}.mute{color:var(--mute)}
+.btn{border:1px solid var(--line);background:var(--card);padding:9px 14px;border-radius:10px;font-weight:600;cursor:pointer}
+.btn:hover{background:var(--soft)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.pri:hover{filter:brightness(1.08)}
+input,select,textarea{background:var(--soft);border:1px solid transparent;border-radius:10px;padding:10px 12px;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);outline-offset:0;background:var(--card)}
+label.l{display:block;font-size:11px;font-weight:600;color:var(--mute);margin-bottom:6px;letter-spacing:.02em}
+
+/* login */
+#auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+#auth .box{width:100%;max-width:380px;padding:32px;text-align:center}
+.logo{width:44px;height:44px;border-radius:12px;background:var(--acc);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:18px}
+
+/* topbar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand h1{font-size:20px;margin:0;font-weight:800;letter-spacing:-.02em}
+.brand p{margin:2px 0 0;font-size:12px;color:var(--mute)}
+.tabs{display:inline-flex;background:var(--soft);padding:4px;border-radius:12px;gap:2px;overflow-x:auto;max-width:100%}
+.tab{border:0;background:transparent;padding:8px 14px;border-radius:9px;font-weight:600;color:var(--mute);cursor:pointer;white-space:nowrap}
+.tab.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(15,23,42,.08)}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px}
+.kpi{padding:16px 18px}
+.kpi span{font-size:11.5px;color:var(--mute);font-weight:600;display:block}
+.kpi b{font-size:20px;font-weight:800;letter-spacing:-.02em;display:block;margin-top:6px}
+.kpi.main{background:var(--acc);border-color:var(--acc);color:#fff}
+.kpi.main span{color:rgba(255,255,255,.75)}
+
+/* calendar */
+.sec{padding:20px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.bar h2{margin:0;font-size:17px;font-weight:800;letter-spacing:-.01em}
+.nav{display:flex;gap:8px;align-items:center}
+.nav select{width:auto;font-weight:700}
+.nav .btn{padding:8px 12px}
+.split{display:grid;grid-template-columns:1fr 270px;gap:20px}
+.dow,.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.dow div{font-size:11px;font-weight:700;color:var(--mute);text-align:center;padding-bottom:6px}
+.blank{min-height:92px;border-radius:12px;background:var(--soft);opacity:.35}
+.day{min-height:92px;border-radius:12px;border:1px solid var(--line);background:var(--card);padding:8px 9px;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;transition:.15s}
+.day:hover{border-color:var(--acc);transform:translateY(-1px)}
+.day.g{background:var(--gain-soft);border-color:transparent}
+.day.l{background:var(--loss-soft);border-color:transparent}
+.day .n{font-size:12px;font-weight:700;color:var(--mute)}
+.day .v{font-size:13px;font-weight:800;letter-spacing:-.01em}
+.day .m{font-size:10.5px;color:var(--mute)}
+.gl{height:4px;border-radius:4px;overflow:hidden;display:flex;background:var(--line);margin:4px 0 2px}
+.gl i{display:block;height:100%}
+.side{display:flex;flex-direction:column;gap:10px}
+.side h3{margin:0 0 4px;font-size:13px;font-weight:700}
+.mini{padding:12px 14px;border-radius:12px;background:var(--soft)}
+.mini span{font-size:11px;color:var(--mute);font-weight:600;display:block}
+.mini b{font-size:16px;font-weight:800;display:block;margin-top:3px}
+.mini small{font-size:10.5px;color:var(--mute)}
+
+/* performance */
+.chartbox{position:relative;height:300px}
+.weeks{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin-top:20px}
+.wk{padding:16px}
+.wk header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.wk header b{font-size:14px}.wk header small{color:var(--mute);font-size:11px}
+.wk .two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.wrow{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--soft);border-radius:10px;margin-bottom:6px}
+.wrow.off{opacity:.4}
+.wrow small{color:var(--mute);font-size:10.5px;display:block}
+.eq{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+.eq .card{padding:16px}
+
+/* calc */
+.calc{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.calc .card{padding:16px;display:flex;flex-direction:column;gap:12px}
+.res{background:var(--soft);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px}
+.res div{display:flex;justify-content:space-between;font-size:13px}
+
+/* modal */
+#modal{position:fixed;inset:0;background:rgba(10,14,22,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+#modal .m{width:100%;max-width:640px;max-height:92vh;overflow:auto;padding:22px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.strats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.strats label{display:flex;gap:8px;align-items:center;background:var(--soft);padding:8px 10px;border-radius:10px;font-size:12.5px;cursor:pointer}
+.strats input{width:auto;accent-color:var(--acc)}
+#paste{border:1.5px dashed var(--line);border-radius:12px;padding:16px;text-align:center;color:var(--mute);font-size:12.5px;cursor:pointer}
+#paste:focus{outline:none;border-color:var(--acc)}
+kbd{background:var(--soft);padding:2px 6px;border-radius:5px;font-size:11px}
+.img{display:flex;gap:10px;background:var(--soft);padding:10px;border-radius:12px;margin-top:8px}
+.img img{width:96px;height:68px;object-fit:cover;border-radius:8px;cursor:zoom-in;flex:0 0 96px}
+.img textarea{height:68px;resize:none;background:var(--card)}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:60;display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out}
+#lb img{max-width:100%;max-height:100%;border-radius:10px}
+
+@media (max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.split,.eq{grid-template-columns:1fr}.row3{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.day,.blank{min-height:70px}.day .m{display:none}.day .v{font-size:10.5px}.cal,.dow{gap:4px}.strats{grid-template-columns:1fr}}
+.kpi.main{background:rgba(0,246,255,.07);border:1px solid #00F6FF;box-shadow:0 0 22px rgba(0,246,255,.35),inset 0 0 22px rgba(0,246,255,.08)}
+.kpi.main span{color:var(--mute)}
+.kpi.main b{color:#00F6FF;text-shadow:0 0 14px rgba(0,246,255,.6)}
+.logo{background:#00F6FF;color:#021018;box-shadow:0 0 18px rgba(0,246,255,.5)}
+.btn.pri{background:linear-gradient(135deg,#00D9E6,#2563EB);border-color:transparent;color:#fff;box-shadow:0 0 18px rgba(0,246,255,.28)}
+.tab.on{background:linear-gradient(135deg,#0891B2,#2563EB);color:#fff;box-shadow:0 0 16px rgba(0,246,255,.25)}
+.day.g{background:var(--gain-soft);border:1px solid rgba(0,255,136,.7);box-shadow:0 0 14px rgba(0,255,136,.16),inset 0 0 14px rgba(0,255,136,.04)}
+.day.l{background:var(--loss-soft);border:1px solid rgba(255,56,100,.7);box-shadow:0 0 14px rgba(255,56,100,.16),inset 0 0 14px rgba(255,56,100,.04)}
+.mini{border:1px solid var(--line)}
+.kpis.k3{grid-template-columns:repeat(3,1fr)}@media (max-width:700px){.kpis.k3{grid-template-columns:1fr}}
+.tb{width:100%;border-collapse:collapse;min-width:460px}.tb th{font-size:11px;color:var(--mute);text-align:right;padding:8px 10px;font-weight:600}.tb th:first-child,.tb td:first-child{text-align:left}.tb td{text-align:right;padding:10px;border-top:1px solid var(--line);font-weight:700;font-size:13px}.tb tfoot td{font-weight:800;background:var(--acc-soft)}
 </style>
 </head>
+<body>
 
-<body class="min-h-screen p-3 sm:p-6 flex items-center justify-center">
-
-<!-- TELA DE LOGIN / LICENÇA -->
-<div id="auth-screen" class="glass rounded-2xl p-6 sm:p-8 w-full max-w-md text-center space-y-6 shadow-2xl border-cyan-500/40">
-  <div class="space-y-2">
-    <span class="text-3xl">🔐</span>
-    <h1 class="text-xl font-black text-cyan-300 tracking-wider">ACESSO RESTRITO</h1>
-    <p class="text-xs text-gray-400">Diário do Léo — Introduza a senha de licença para desbloquear o sistema.</p>
+<div id="auth">
+  <div class="card box">
+    <div class="logo">DL</div>
+    <h1 style="font-size:20px;margin:16px 0 4px;font-weight:800">Diário do Léo</h1>
+    <p class="mute" style="margin:0 0 20px;font-size:13px">Digite a senha de licença para entrar.</p>
+    <input type="password" id="pw" placeholder="Senha" style="text-align:center;margin-bottom:10px">
+    <button class="btn pri" style="width:100%" onclick="login()">Entrar</button>
+    <p id="err" class="loss hidden" style="font-size:12px;font-weight:600;margin:10px 0 0">Senha incorreta.</p>
   </div>
-  
-  <div class="space-y-3">
-    <input type="password" id="access-password" placeholder="Introduza a sua senha..." class="w-full rounded-xl p-3 text-center text-sm tracking-widest font-bold">
-    <button onclick="validatePassword()" class="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-xl text-xs font-bold shadow-lg shadow-cyan-900/40 text-white tracking-wider uppercase transition">Entrar no Sistema</button>
-    <p id="error-msg" class="text-xs text-red-400 hidden font-bold">Senha incorreta. Tente novamente.</p>
-  </div>
-  <div class="text-[10px] text-gray-600">Proteção de Licença Client-Side v1.0</div>
 </div>
 
-<!-- CONTEÚDO PRINCIPAL DO SISTEMA -->
-<div id="main-app" class="max-w-7xl mx-auto space-y-5 w-full hidden">
-
-<header class="glass neon-header rounded-2xl p-4 sm:p-5">
-  <div class="flex flex-col xl:flex-row gap-4 justify-between items-center">
-    <div class="w-full xl:w-auto">
-      <div class="flex items-center justify-between xl:justify-start gap-2">
-        <div class="flex items-center gap-2">
-          <span class="text-2xl">📊</span>
-          <h1 class="title-neon text-xl sm:text-2xl font-black tracking-wider text-cyan-300">DIÁRIO DO LÉO</h1>
-          <span class="text-[10px] bg-cyan-950/80 text-cyan-300 px-2 py-1 rounded border border-cyan-700">NEON v6.5</span>
-        </div>
-        <button onclick="logout()" class="text-[10px] bg-red-950/80 hover:bg-red-900 text-red-300 px-3 py-1.5 rounded-lg border border-red-700/50 font-bold transition">Sair / Bloquear</button>
-      </div>
-      <p class="text-xs text-gray-400 mt-1 ml-9">Gestão profissional de Mini Índice • Ano 2026</p>
-    </div>
-
-    <!-- Cabeçalho com fonte de 14px no Res. Mesa (1º–15º) -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 w-full xl:w-auto">
-      <div class="metric rounded-xl p-3 text-center">
-        <span class="text-[10px] text-gray-400 block">TOTAL POSITIVO</span>
-        <span id="metric-positive" class="metric-value text-green-400 font-black text-sm">R$ 0,00</span>
-      </div>
-      <div class="metric rounded-xl p-3 text-center">
-        <span class="text-[10px] text-gray-400 block">TOTAL NEGATIVO</span>
-        <span id="metric-negative" class="metric-value text-red-400 font-black text-sm">R$ 0,00</span>
-      </div>
-      <div class="metric rounded-xl p-3 text-center">
-        <span class="text-[10px] text-gray-400 block">SALDO LÍQUIDO</span>
-        <span id="metric-net" class="metric-value text-cyan-300 font-black text-sm">R$ 0,00</span>
-      </div>
-      <div class="metric rounded-xl p-3 text-center">
-        <span class="text-[10px] text-gray-400 block">RES. MESA (1º–15º)</span>
-        <span id="metric-table-first15" class="metric-value text-green-300 font-black" style="font-size: 14px;">R$ 0,00</span>
-      </div>
-      <div class="metric rounded-xl p-3 text-center">
-        <span class="text-[10px] text-gray-400 block">RES. MESA (16º–FINAL)</span>
-        <span id="metric-table-last15" class="metric-value text-green-300 font-black text-sm">R$ 0,00</span>
-      </div>
-    </div>
-  </div>
-</header>
-
-<nav class="flex flex-wrap gap-2 border-b border-gray-800/70 pb-2">
-  <button onclick="switchTab('calendar')" id="tab-calendar" class="nav-btn nav-active px-4 py-2.5 rounded-xl text-xs font-bold">📅 Calendário</button>
-  <button onclick="switchTab('performance')" id="tab-performance" class="nav-btn bg-gray-900/80 text-gray-400 px-4 py-2.5 rounded-xl text-xs font-bold">📈 Performance</button>
-  <button onclick="switchTab('equity')" id="tab-equity" class="nav-btn bg-gray-900/80 text-gray-400 px-4 py-2.5 rounded-xl text-xs font-bold">📉 Equity & Gain/Loss</button>
-  <button onclick="switchTab('calc')" id="tab-calc" class="nav-btn bg-gray-900/80 text-gray-400 px-4 py-2.5 rounded-xl text-xs font-bold">🧮 Calculadora WIN</button>
-</nav>
-
-<!-- ABA CALENDÁRIO COM PAINEL À DIREITA -->
-<section id="view-calendar" class="glass rounded-2xl p-4 sm:p-6">
-  <div class="flex flex-col sm:flex-row justify-between gap-2 items-start sm:items-center mb-5">
-    <div>
-      <div class="flex items-center gap-3">
-        <select id="select-month" onchange="changeMonth(this.value)" class="rounded-xl px-3 py-1.5 text-sm font-black text-cyan-300 bg-gray-900 border border-cyan-500/30">
-          <option value="0">Janeiro 2026</option>
-          <option value="1">Fevereiro 2026</option>
-          <option value="2">Março 2026</option>
-          <option value="3">Abril 2026</option>
-          <option value="4">Maio 2026</option>
-          <option value="5">Junho 2026</option>
-          <option value="6">Julho 2026</option>
-          <option value="7">Agosto 2026</option>
-          <option value="8" selected>Setembro 2026</option>
-          <option value="9">Outubro 2026</option>
-          <option value="10">Novembro 2026</option>
-          <option value="11">Dezembro 2026</option>
-        </select>
-      </div>
-      <p class="text-[11px] text-gray-500 mt-1">Clique num dia para registar resultado, operações, contratos, estratégias e prints.</p>
-    </div>
-    <span class="text-[10px] text-cyan-400 border border-cyan-500/20 bg-cyan-500/[.04] rounded-lg px-2 py-1">● DADOS GUARDADOS NO NAVEGADOR</span>
+<div id="app" class="wrap hidden">
+  <div class="top">
+    <div class="brand"><div class="logo">DL</div><div><h1 id="bTitle">Diário do Léo</h1><p>Mini Índice WIN · 2026</p></div></div>
+    <div class="tabs" id="emp"></div>
+    <div class="tabs" id="tabs"></div>
+    <button class="btn" onclick="logout()">Sair</button>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-4 gap-5">
-    <!-- Calendário ocupa 3 colunas -->
-    <div class="lg:col-span-3">
-      <div class="grid grid-cols-7 gap-1 sm:gap-2 text-center font-bold text-[10px] sm:text-xs text-gray-500 mb-2">
-        <div class="text-red-400">DOM</div><div>SEG</div><div>TER</div><div>QUA</div><div>QUI</div><div>SEX</div><div class="text-blue-400">SÁB</div>
+  <div class="kpis">
+    <div class="card kpi"><span>Total positivo</span><b id="k-pos" class="gain">R$ 0,00</b></div>
+    <div class="card kpi"><span>Total negativo</span><b id="k-neg" class="loss">R$ 0,00</b></div>
+    <div class="card kpi main"><span>Saldo líquido</span><b id="k-net">R$ 0,00</b></div>
+    <div class="card kpi"><span>Mesa · 1º ao 15º</span><b id="k-m1">R$ 0,00</b></div>
+    <div class="card kpi"><span>Mesa · 16º ao fim</span><b id="k-m2">R$ 0,00</b></div>
+    <div class="card kpi" style="background:var(--acc-soft)"><span>Mesa total</span><b id="k-mt">R$ 0,00</b></div>
+  </div>
+
+  <section id="v-calendar" class="card sec">
+    <div class="bar">
+      <div><h2>Calendário</h2><span class="mute" style="font-size:12px">Clique num dia para registrar resultado, operações, estratégias e prints.</span></div>
+      <div class="nav">
+        <button class="btn" onclick="stepMonth(-1)" aria-label="Mês anterior">‹</button>
+        <select id="sel" onchange="changeMonth(this.value)"></select>
+        <button class="btn" onclick="stepMonth(1)" aria-label="Próximo mês">›</button>
       </div>
-      <div class="max-h-[480px] overflow-y-auto pr-1">
-        <div id="calendar-grid" class="calendar-grid grid grid-cols-7 gap-1 sm:gap-2"></div>
-      </div>
     </div>
-
-    <!-- Painel de Resumo Quinzenal & Mesa (1 coluna) -->
-    <div class="space-y-3 flex flex-col justify-between lg:col-span-1">
-      <div class="space-y-3">
-        <h3 class="text-xs font-black text-cyan-300 uppercase tracking-wider border-b border-gray-800 pb-2">Resumo Quinzenal & Mesa</h3>
-        
-        <!-- Saldo Líquido - Primeiros 15 dias -->
-        <div class="glass rounded-xl p-3 border border-cyan-500/20">
-          <span class="text-[10px] text-gray-400 block uppercase font-bold">Saldo Líquido (1º–15º)</span>
-          <span id="cal-balance-first15" class="text-sm font-black text-cyan-300 mt-1 block">R$ 0,00</span>
-          <span class="text-[9px] text-gray-500">Operações dias 01 a 15</span>
-        </div>
-
-        <!-- Resultado Líquido Mesa - Primeiros 15 dias (-30%) -> Fonte 14px aplicada -->
-        <div class="glass rounded-xl p-3 border border-green-500/20">
-          <span class="text-[10px] text-gray-400 block uppercase font-bold">Res. Líq. Mesa (1º–15º)</span>
-          <span id="cal-table-first15" class="font-black text-green-300 mt-1 block" style="font-size: 14px;">R$ 0,00</span>
-          <span class="text-[9px] text-gray-500">Saldo Q1 − 30% (se positivo)</span>
-        </div>
-
-        <!-- Saldo Líquido - Últimos 15 dias -->
-        <div class="glass rounded-xl p-3 border border-blue-500/20">
-          <span class="text-[10px] text-gray-400 block uppercase font-bold">Saldo Líquido (16º–Final)</span>
-          <span id="cal-balance-last15" class="text-sm font-black text-blue-300 mt-1 block">R$ 0,00</span>
-          <span class="text-[9px] text-gray-500">Operações dia 16 em diante</span>
-        </div>
-
-        <!-- Resultado Líquido Mesa - Últimos 15 dias (-30%) -->
-        <div class="glass rounded-xl p-3 border border-green-500/20">
-          <span class="text-[10px] text-gray-400 block uppercase font-bold">Res. Líq. Mesa (16º–Final)</span>
-          <span id="cal-table-last15" class="text-sm font-black text-green-300 mt-1 block">R$ 0,00</span>
-          <span class="text-[9px] text-gray-500">Saldo Q2 − 30% (se positivo)</span>
-        </div>
-
-        <!-- Resultado Líquido Mesa Total (Soma das Mesas) -->
-        <div class="glass rounded-xl p-3 border border-cyan-500/40">
-          <span class="text-[10px] text-cyan-300 block uppercase font-bold">Res. Líq. Mesa Total</span>
-          <span id="cal-table-total" class="text-sm font-black text-cyan-300 mt-1 block">R$ 0,00</span>
-          <span class="text-[9px] text-gray-500">Soma Q1 + Q2 (Mesa)</span>
-        </div>
-      </div>
-      <div class="text-[9px] text-gray-600 text-center pt-2">Diário do Léo • WIN</div>
-    </div>
-  </div>
-</section>
-
-<!-- ABA PERFORMANCE -->
-<section id="view-performance" class="hidden glass rounded-2xl p-4 sm:p-6 space-y-5">
-  <div class="glass rounded-2xl p-3 sm:p-5">
-    <h3 class="text-[11px] font-bold text-cyan-300 uppercase tracking-wider mb-2">Evolução Semanal</h3>
-    <div class="h-[320px]">
-      <canvas id="weeklyBarChart"></canvas>
-    </div>
-  </div>
-
-  <div>
-    <h3 class="text-[11px] font-bold text-cyan-300 uppercase tracking-wider mb-3">Colunas por Semana (Valor Total, Valor Líquido & Agenda Seg–Sex)</h3>
-    <div id="weekly-columns-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-      <!-- Preenchido dinamicamente via JS -->
-    </div>
-  </div>
-</section>
-
-<!-- ABA EQUITY -->
-<section id="view-equity" class="hidden glass rounded-2xl p-4 sm:p-6 space-y-5">
-  <div>
-    <h2 class="text-lg font-black text-cyan-300 uppercase">Curva de evolução</h2>
-    <p class="text-xs text-gray-500">Passe o cursor sobre a curva para visualizar o Gain/Loss acumulado até ao dia.</p>
-  </div>
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-    <div class="lg:col-span-2 chart-panel glass rounded-2xl p-3 sm:p-5">
-      <canvas id="equityChart"></canvas>
-    </div>
-    <div class="chart-panel glass rounded-2xl p-3 sm:p-5 flex flex-col items-center justify-center">
-      <h3 id="doughnut-title" class="text-[11px] font-bold text-cyan-300 uppercase tracking-wider mb-2">Gain vs Loss</h3>
-      <div class="w-full h-[300px]"><canvas id="gainLossDoughnut"></canvas></div>
-    </div>
-  </div>
-</section>
-
-<!-- NOVA ABA: CALCULADORA WIN COM 4 COLUNAS / CENÁRIOS -->
-<section id="view-calc" class="hidden glass rounded-2xl p-4 sm:p-6 space-y-5">
-  <div class="flex justify-between items-center border-b border-gray-800 pb-3">
-    <div>
-      <h2 class="text-lg font-black text-cyan-300 uppercase">🧮 Calculadora WIN • Múltiplos Cenários</h2>
-      <p class="text-xs text-gray-500">Insira pontos e contratos em cada coluna para simular diferentes alvos e estratégias simultaneamente.</p>
-    </div>
-  </div>
-
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <!-- Coluna 1 -->
-    <div class="glass rounded-xl p-4 border border-cyan-500/25 space-y-3">
-      <div class="flex justify-between items-center"><span class="text-xs font-black text-cyan-300">Cenário 1</span></div>
+    <div class="split">
       <div>
-        <label class="text-[9px] text-gray-400 block mb-1 font-bold">PONTOS</label>
-        <input type="number" id="calc-points-1" placeholder="Ex: 500" class="w-full rounded-lg p-2.5 text-xs" oninput="calcWinCol(1)">
+        <div class="dow"><div>DOM</div><div>SEG</div><div>TER</div><div>QUA</div><div>QUI</div><div>SEX</div><div>SÁB</div></div>
+        <div class="cal" id="cal"></div>
       </div>
-      <div>
-        <label class="text-[9px] text-gray-400 block mb-1 font-bold">CONTRATOS</label>
-        <input type="number" id="calc-contracts-1" value="1" placeholder="Ex: 5" class="w-full rounded-lg p-2.5 text-xs" oninput="calcWinCol(1)">
-      </div>
-      <div class="bg-black/40 border border-gray-800 rounded-lg p-3 space-y-1.5">
-        <div class="flex justify-between items-center text-xs">
-          <span class="text-gray-400">Bruto:</span>
-          <span id="calc-bruto-1" class="font-black text-cyan-300">R$ 0,00</span>
-        </div>
-        <div class="flex justify-between items-center text-xs">
-          <span class="text-gray-400">Mesa (-30%):</span>
-          <span id="calc-mesa-1" class="font-black text-green-300">R$ 0,00</span>
-        </div>
+      <div class="side">
+        <h3>Resumo quinzenal</h3>
+        <div class="mini"><span>Saldo · 1º ao 15º</span><b id="s-b1"></b></div>
+        <div class="mini"><span>Mesa · 1º ao 15º</span><b id="s-m1"></b><small>Saldo − 30% (se positivo)</small></div>
+        <div class="mini"><span>Saldo · 16º ao fim</span><b id="s-b2"></b></div>
+        <div class="mini"><span>Mesa · 16º ao fim</span><b id="s-m2"></b><small>Saldo − 30% (se positivo)</small></div>
+        <div class="mini" style="background:var(--acc-soft)"><span>Mesa total</span><b id="s-mt"></b><small>Soma das duas quinzenas</small></div>
       </div>
     </div>
+  </section>
 
-    <!-- Coluna 2 -->
-    <div class="glass rounded-xl p-4 border border-cyan-500/25 space-y-3">
-      <div class="flex justify-between items-center"><span class="text-xs font-black text-cyan-300">Cenário 2</span></div>
-      <div>
-        <label class="text-[9px] text-gray-400 block mb-1 font-bold">PONTOS</label>
-        <input type="number" id="calc-points-2" placeholder="Ex: 500" class="w-full rounded-lg p-2.5 text-xs" oninput="calcWinCol(2)">
-      </div>
-      <div>
-        <label class="text-[9px] text-gray-400 block mb-1 font-bold">CONTRATOS</label>
-        <input type="number" id="calc-contracts-2" value="1" placeholder="Ex: 5" class="w-full rounded-lg p-2.5 text-xs" oninput="calcWinCol(2)">
-      </div>
-      <div class="bg-black/40 border border-gray-800 rounded-lg p-3 space-y-1.5">
-        <div class="flex justify-between items-center text-xs">
-          <span class="text-gray-400">Bruto:</span>
-          <span id="calc-bruto-2" class="font-black text-cyan-300">R$ 0,00</span>
-        </div>
-        <div class="flex justify-between items-center text-xs">
-          <span class="text-gray-400">Mesa (-30%):</span>
-          <span id="calc-mesa-2" class="font-black text-green-300">R$ 0,00</span>
-        </div>
-      </div>
+  <section id="v-performance" class="hidden">
+    <div class="card sec"><div class="bar"><h2>Evolução semanal</h2></div><div class="chartbox"><canvas id="cWeek"></canvas></div></div>
+    <div class="weeks" id="weeks"></div>
+  </section>
+
+  <section id="v-equity" class="hidden">
+    <div class="bar" style="margin-bottom:12px"><div><h2 style="margin:0;font-size:17px;font-weight:800">Curva de evolução</h2><span class="mute" style="font-size:12px">Passe o cursor na curva para ver o Gain/Loss acumulado até o dia.</span></div></div>
+    <div class="eq">
+      <div class="card"><div class="chartbox" style="height:380px"><canvas id="cEq"></canvas></div></div>
+      <div class="card"><div id="dTitle" class="mute" style="font-size:12px;font-weight:700;margin-bottom:8px">Gain vs Loss</div><div class="chartbox" style="height:320px"><canvas id="cDo"></canvas></div></div>
     </div>
+  </section>
 
-    <!-- Coluna 3 -->
-    <div class="glass rounded-xl p-4 border border-cyan-500/25 space-y-3">
-      <div class="flex justify-between items-center"><span class="text-xs font-black text-cyan-300">Cenário 3</span></div>
-      <div>
-        <label class="text-[9px] text-gray-400 block mb-1 font-bold">PONTOS</label>
-        <input type="number" id="calc-points-3" placeholder="Ex: 500" class="w-full rounded-lg p-2.5 text-xs" oninput="calcWinCol(3)">
-      </div>
-      <div>
-        <label class="text-[9px] text-gray-400 block mb-1 font-bold">CONTRATOS</label>
-        <input type="number" id="calc-contracts-3" value="1" placeholder="Ex: 5" class="w-full rounded-lg p-2.5 text-xs" oninput="calcWinCol(3)">
-      </div>
-      <div class="bg-black/40 border border-gray-800 rounded-lg p-3 space-y-1.5">
-        <div class="flex justify-between items-center text-xs">
-          <span class="text-gray-400">Bruto:</span>
-          <span id="calc-bruto-3" class="font-black text-cyan-300">R$ 0,00</span>
-        </div>
-        <div class="flex justify-between items-center text-xs">
-          <span class="text-gray-400">Mesa (-30%):</span>
-          <span id="calc-mesa-3" class="font-black text-green-300">R$ 0,00</span>
-        </div>
-      </div>
+  <section id="v-calc" class="hidden">
+    <div class="bar"><div><h2 style="margin:0;font-size:17px;font-weight:800">Calculadora WIN</h2><span class="mute" style="font-size:12px">Simule até 4 cenários. Base: R$ 0,20 por ponto por contrato.</span></div></div>
+    <div class="calc" id="calc"></div>
+  </section>
+
+  <section id="v-anual" class="hidden">
+    <div class="bar"><div><h2 style="margin:0;font-size:17px;font-weight:800">Resultado anual 2026</h2><span class="mute" style="font-size:12px">Mesa total de cada mês: soma das duas quinzenas (saldo − 30% quando positivo).</span></div></div>
+    <div class="card kpi main" style="margin-bottom:16px"><span>Total do ano · Mesa</span><b id="an-total">R$ 0,00</b></div>
+    <div class="weeks" id="an-months" style="margin-top:0"></div>
+  </section>
+
+  <section id="v-comp" class="hidden">
+    <div class="bar"><div><h2 style="margin:0;font-size:17px;font-weight:800">Comparativo das empresas</h2><span class="mute" style="font-size:12px">Evolução semanal e soma anual (Mesa) da Empresa 1 e da Empresa 2.</span></div>
+      <div class="nav"><select id="cmpSel" onchange="changeMonth(this.value)"></select></div></div>
+    <div class="kpis k3" style="margin-bottom:16px">
+      <div class="card kpi"><span>Empresa 1 · ano (Mesa)</span><b id="cp-1">R$ 0,00</b></div>
+      <div class="card kpi"><span>Empresa 2 · ano (Mesa)</span><b id="cp-2">R$ 0,00</b></div>
+      <div class="card kpi main"><span>Soma anual das duas empresas</span><b id="cp-s">R$ 0,00</b></div>
     </div>
-
-    <!-- Coluna 4 -->
-    <div class="glass rounded-xl p-4 border border-cyan-500/25 space-y-3">
-      <div class="flex justify-between items-center"><span class="text-xs font-black text-cyan-300">Cenário 4</span></div>
-      <div>
-        <label class="text-[9px] text-gray-400 block mb-1 font-bold">PONTOS</label>
-        <input type="number" id="calc-points-4" placeholder="Ex: 500" class="w-full rounded-lg p-2.5 text-xs" oninput="calcWinCol(4)">
-      </div>
-      <div>
-        <label class="text-[9px] text-gray-400 block mb-1 font-bold">CONTRATOS</label>
-        <input type="number" id="calc-contracts-4" value="1" placeholder="Ex: 5" class="w-full rounded-lg p-2.5 text-xs" oninput="calcWinCol(4)">
-      </div>
-      <div class="bg-black/40 border border-gray-800 rounded-lg p-3 space-y-1.5">
-        <div class="flex justify-between items-center text-xs">
-          <span class="text-gray-400">Bruto:</span>
-          <span id="calc-bruto-4" class="font-black text-cyan-300">R$ 0,00</span>
-        </div>
-        <div class="flex justify-between items-center text-xs">
-          <span class="text-gray-400">Mesa (-30%):</span>
-          <span id="calc-mesa-4" class="font-black text-green-300">R$ 0,00</span>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="text-[10px] text-gray-500 text-center pt-2">Cálculo padrão baseado em R$ 0,20 por ponto por contrato.</div>
-</section>
-
+    <div class="card sec"><div class="bar"><h2>Evolução semanal · <span id="cmpMonth"></span></h2></div><div class="chartbox"><canvas id="cCmp"></canvas></div></div>
+    <div class="weeks" id="cmpWeeks"></div>
+    <div class="card sec" style="margin-top:20px"><div class="bar"><h2>Mesa total por mês · 2026</h2></div>
+      <div style="overflow-x:auto"><table class="tb"><thead><tr><th>Mês</th><th>Empresa 1</th><th>Empresa 2</th><th>Soma</th></tr></thead><tbody id="cmpRows"></tbody><tfoot id="cmpFoot"></tfoot></table></div></div>
+  </section>
 </div>
 
-<!-- MODAL -->
-<div id="day-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden z-50 flex items-center justify-center p-3 sm:p-5">
-  <div class="glass rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto p-4 sm:p-6 border-cyan-400/30">
-    <div class="flex justify-between items-center pb-4 border-b border-gray-800 mb-4">
-      <h3 id="modal-title" class="text-lg font-black text-cyan-300">Detalhes do Dia</h3>
-      <button onclick="closeModal()" class="text-gray-500 hover:text-white text-2xl">&times;</button>
-    </div>
-
-    <div class="space-y-4">
-      <div class="rounded-xl border border-gray-800 bg-black/20 p-3 flex items-center justify-between gap-3">
-        <span class="text-xs text-gray-400">Ditar resultado por voz</span>
-        <button onclick="startVoiceRecognition()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-2 rounded-lg text-xs font-bold">🎙️ Falar</button>
+<div id="modal" class="hidden">
+  <div class="card m">
+    <div class="bar"><h2 id="mTitle">Detalhes do dia</h2><button class="btn" onclick="closeModal()">Fechar</button></div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;background:var(--soft);padding:10px 12px;border-radius:12px">
+        <span class="mute" style="font-size:12.5px">Ditar resultado por voz</span>
+        <button class="btn" onclick="voice()">🎙 Falar</button>
       </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div><label class="text-[10px] text-gray-400 block mb-1">RESULTADO (R$)</label><input type="number" step="0.01" id="input-result" placeholder="Ex: 250 ou -100" class="w-full rounded-lg p-2.5 text-sm"></div>
-        <div><label class="text-[10px] text-gray-400 block mb-1">OPERAÇÕES</label><input type="number" id="input-trades" placeholder="Ex: 4" class="w-full rounded-lg p-2.5 text-sm"></div>
-        <div><label class="text-[10px] text-gray-400 block mb-1">CONTRATOS</label><input type="number" id="input-contracts" placeholder="Ex: 5" class="w-full rounded-lg p-2.5 text-sm"></div>
+      <div class="row3">
+        <div><label class="l">RESULTADO (R$)</label><input type="number" step="0.01" id="iR" placeholder="250 ou -100"></div>
+        <div><label class="l">OPERAÇÕES</label><input type="number" id="iT" placeholder="4"></div>
+        <div><label class="l">CONTRATOS</label><input type="number" id="iC" placeholder="5"></div>
       </div>
-
+            <div>
+        <label class="l">RESULTADOS DAS OPERAÇÕES (R$)</label>
+        <div style="display:flex;gap:8px"><input type="number" step="0.01" id="pIn" placeholder="Ex: 120 ou -50"><button class="btn pri" onclick="addPart()">Adicionar</button></div>
+        <div id="pList" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+      </div>
       <div>
-        <label class="text-[10px] text-gray-400 block mb-2 font-bold uppercase tracking-wider">Estratégias utilizadas</label>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs bg-black/20 p-3 rounded-xl border border-gray-800 max-h-44 overflow-y-auto">
-          <label><input type="checkbox" class="strat-check accent-cyan-500" value="Linha com imbalance venda"> Linha com imbalance venda</label>
-          <label><input type="checkbox" class="strat-check accent-cyan-500" value="Linha com imbalance de compra"> Linha com imbalance de compra</label>
-          <label><input type="checkbox" class="strat-check accent-cyan-500" value="Linha de alvo"> Linha de alvo</label>
-          <label><input type="checkbox" class="strat-check accent-cyan-500" value="Linha de rompimento importante"> Linha de rompimento importante</label>
-          <label><input type="checkbox" class="strat-check accent-cyan-500" value="Linha de alvo 1"> Linha de alvo 1</label>
-          <label><input type="checkbox" class="strat-check accent-cyan-500" value="Linha de alvo total"> Linha de alvo total</label>
-          <label><input type="checkbox" class="strat-check accent-cyan-500" value="Linha fundo do 60"> Linha fundo do 60</label>
-          <label><input type="checkbox" class="strat-check accent-cyan-500" value="Linha topo do 60"> Linha topo do 60</label>
-        </div>
+        <div style="display:flex;justify-content:space-between"><label class="l">PRINTS, GAIN/LOSS E NOTAS</label><span id="iCount" class="mute" style="font-size:11px;font-weight:700">0 / 5</span></div>
+        <div id="paste" tabindex="0">Clique aqui e pressione <kbd>Ctrl+V</kbd> para colar um print</div>
+        <div id="imgs"></div>
       </div>
-
-      <div>
-        <div class="flex justify-between mb-1">
-          <label class="text-[10px] text-gray-400 font-bold uppercase">Prints, Gain/Loss e notas</label>
-          <span id="image-counter" class="text-[10px] text-cyan-400 font-bold">0 / 5</span>
-        </div>
-        <div id="paste-zone" tabindex="0" class="border-2 border-dashed border-gray-800 rounded-xl p-4 text-center cursor-pointer">
-          <p class="text-xs text-gray-500">Clique aqui e pressione <kbd class="bg-gray-800 px-1.5 py-0.5 rounded text-cyan-400">Ctrl+V</kbd> para colar um print.</p>
-        </div>
-        <div id="images-preview-container" class="space-y-3 mt-2"></div>
-      </div>
-
-      <div class="flex justify-end gap-2 pt-3 border-t border-gray-800">
-        <button onclick="closeModal()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl text-xs font-bold">Cancelar</button>
-        <button onclick="saveDayData()" class="px-5 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-xl text-xs font-bold shadow-lg shadow-cyan-900/30">Guardar Dados</button>
+      <div style="display:flex;justify-content:flex-end;gap:8px">
+        <button class="btn" onclick="closeModal()">Cancelar</button>
+        <button class="btn pri" onclick="saveDay()">Salvar</button>
       </div>
     </div>
   </div>
 </div>
+<div id="lb" class="hidden" onclick="this.classList.add('hidden')"><img alt="Print ampliado"></div>
 
 <script>
-// --- SISTEMA DE SENHA / LICENÇA ---
-const APP_PASSWORD = "123456";
+const PASS="123456", Y=2026;
+const MN=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const STRATS=['Linha com imbalance venda','Linha com imbalance de compra','Linha de alvo','Linha de rompimento importante','Linha de alvo 1','Linha de alvo total','Linha fundo do 60','Linha topo do 60'];
+const TABS=[['calendar','Calendário'],['performance','Performance'],['equity','Equity'],['calc','Calculadora'],['anual','Resultado anual 2026'],['comp','Comparativo']];
+let M=8,data={},day=null,imgs=[],ch={},mem={},parts=[];
+const $=id=>document.getElementById(id);
+const st={get(k){try{return localStorage.getItem(k)}catch(e){return mem[k]??null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){mem[k]=v}},del(k){try{localStorage.removeItem(k)}catch(e){delete mem[k]}}};
+const brl=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const dim=()=>new Date(Y,M+1,0).getDate();
+let E=parseInt(st.get('win_empresa'))===2?2:1;
+const kfor=m=>E===2?`win_trading_data_e2_${Y}_${m}`:`win_trading_data_${Y}_${m}`;
+const key=()=>kfor(M);
+const load=()=>{try{data=JSON.parse(st.get(key())||'{}')}catch(e){data={}}};
+const save=()=>st.set(key(),JSON.stringify(data));
+const sum=(a,b)=>{let s=0;for(let d=a;d<=Math.min(b,dim());d++){const r=parseFloat(data[d]?.result);if(!isNaN(r))s+=r}return s};
+const net=v=>v>0?v*.7:v;
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const cls=(el,v)=>{el.classList.toggle('gain',v>=0);el.classList.toggle('loss',v<0)};
 
-function validatePassword() {
-  const passInput = document.getElementById('access-password').value;
-  const errorMsg = document.getElementById('error-msg');
-  
-  if (passInput === APP_PASSWORD) {
-    localStorage.setItem('win_system_auth', 'true');
-    initApp();
-  } else {
-    errorMsg.classList.remove('hidden');
-    document.getElementById('access-password').value = '';
+/* auth */
+function login(){if($('pw').value===PASS){st.set('win_system_auth','true');init()}else{$('err').classList.remove('hidden');$('pw').value=''}}
+function logout(){st.del('win_system_auth');$('app').classList.add('hidden');$('auth').classList.remove('hidden')}
+$('pw').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
+function init(){$('auth').classList.add('hidden');$('app').classList.remove('hidden');paintEmp();renderCal()}
+
+/* empresas */
+$('emp').innerHTML=[1,2].map(n=>`<button class="tab" id="e-${n}" onclick="setEmpresa(${n})">Empresa ${n}</button>`).join('');
+function paintEmp(){[1,2].forEach(i=>$('e-'+i).classList.toggle('on',i===E));$('bTitle').textContent='Diário do Léo · Empresa '+E;document.title='Diário do Léo · Empresa '+E}
+function refresh(){renderCal();if(!$('v-performance').classList.contains('hidden'))renderPerf();if(!$('v-equity').classList.contains('hidden'))renderEq();if(!$('v-anual').classList.contains('hidden'))renderAnual();if(!$('v-comp').classList.contains('hidden'))renderComp()}
+function setEmpresa(n){E=n;st.set('win_empresa',String(n));paintEmp();refresh()}
+
+/* tabs */
+$('tabs').innerHTML=TABS.map(([k,n],i)=>`<button class="tab${i?'':' on'}" id="t-${k}" onclick="tab('${k}')">${n}</button>`).join('');
+function tab(k){TABS.forEach(([t])=>{$('t-'+t).classList.toggle('on',t===k);$('v-'+t).classList.toggle('hidden',t!==k)});
+  if(k==='performance')renderPerf();if(k==='equity')renderEq();if(k==='anual')renderAnual();if(k==='comp')renderComp()}
+$('sel').innerHTML=MN.map((n,i)=>`<option value="${i}"${i===M?' selected':''}>${n} ${Y}</option>`).join('');
+function changeMonth(m){M=parseInt(m);$('sel').value=M;$('cmpSel').value=M;renderCal();
+  if(!$('v-performance').classList.contains('hidden'))renderPerf();
+  if(!$('v-equity').classList.contains('hidden'))renderEq();
+  if(!$('v-comp').classList.contains('hidden'))renderComp()}
+function stepMonth(d){const n=M+d;if(n>=0&&n<=11)changeMonth(n)}
+
+/* calendar */
+function renderCal(){
+  load();const T=dim(),first=new Date(Y,M,1).getDay();let h='',pos=0,neg=0;
+  for(let i=0;i<first;i++)h+='<div class="blank"></div>';
+  for(let d=1;d<=T;d++){
+    const x=data[d]||{},r=parseFloat(x.result),has=!isNaN(r);
+    if(has){r>0?pos+=r:neg+=Math.abs(r)}
+    const im=x.images||[],g=im.filter(i=>i.status==='gain').length,l=im.filter(i=>i.status==='loss').length,tg=g+l;
+    h+=`<div class="day${has&&r>0?' g':''}${has&&r<0?' l':''}" onclick="openModal(${d})">
+      <div class="n">${d}</div>
+      <div>${has?`<div class="v ${r>=0?'gain':'loss'}">${brl(r)}</div>`:''}
+      ${tg?`<div class="gl"><i style="width:${g/tg*100}%;background:var(--gain)"></i><i style="width:${l/tg*100}%;background:var(--loss)"></i></div>`:''}
+      <div class="m">${x.trades||0} op · ${x.contracts||0} ct${im.length?' · 📷'+im.length:''}</div></div></div>`;
   }
+  $('cal').innerHTML=h;
+  const n=pos-neg,a=sum(1,15),b=sum(16,T),ma=net(a),mb=net(b);
+  $('k-pos').textContent=brl(pos);$('k-neg').textContent=brl(neg);$('k-net').textContent=brl(n);
+  [['k-m1',ma],['k-m2',mb],['k-mt',ma+mb],['s-b1',a],['s-m1',ma],['s-b2',b],['s-m2',mb],['s-mt',ma+mb]].forEach(([id,v])=>{$(id).textContent=brl(v);cls($(id),v)});
 }
 
-function logout() {
-  localStorage.removeItem('win_system_auth');
-  document.getElementById('main-app').classList.add('hidden');
-  document.body.classList.add('flex', 'items-center', 'justify-center');
-  document.getElementById('auth-screen').classList.remove('hidden');
-  document.getElementById('access-password').value = '';
+/* performance */
+function renderPerf(){
+  load();const T=dim();let wk=[],s=1,n=1;
+  while(s<=T){const e=Math.min(s+6,T);wk.push({n,s,e});s=e+1;n++}
+  const tot=w=>sum(w.s,w.e);
+  if(ch.w)ch.w.destroy();
+  ch.w=new Chart($('cWeek'),{type:'bar',
+    data:{labels:wk.map(w=>'Semana '+w.n),datasets:[{data:wk.map(tot),backgroundColor:wk.map(w=>tot(w)>=0?css('--gain'):css('--loss')),borderRadius:8,maxBarThickness:70}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+brl(c.raw)}}},
+      scales:{x:{grid:{display:false},ticks:{color:css('--mute')}},y:{grid:{color:css('--line')},ticks:{color:css('--mute'),callback:v=>brl(v)}}}},
+    plugins:[{id:'vals',afterDatasetsDraw(c){const x=c.ctx;x.save();x.font='700 12px Inter';x.textAlign='center';x.textBaseline='middle';x.fillStyle='#04121C';
+      c.getDatasetMeta(0).data.forEach((b,i)=>{const v=c.data.datasets[0].data[i];x.fillText(brl(v),b.x,(b.y+b.base)/2)});x.restore()}}]});
+  const WD=['Segunda','Terça','Quarta','Quinta','Sexta'];
+  $('weeks').innerHTML=wk.map(w=>{
+    const t=tot(w),nt=net(t);
+    const rows=WD.map((nm,k)=>{
+      let td=null;for(let d=w.s;d<=w.e;d++){if(new Date(Y,M,d).getDay()===k+1){td=d;break}}
+      if(td===null)return `<div class="wrow off"><div><b style="font-size:12px">${nm}</b><small>Fora do período</small></div><span>—</span></div>`;
+      const r=parseFloat(data[td]?.result),has=!isNaN(r);let G=0,L=0;
+      for(let d=1;d<=T;d++){if(new Date(Y,M,d).getDay()===k+1){const q=parseFloat(data[d]?.result);if(!isNaN(q)){q>0?G++:q<0&&L++}}}
+      const tt=G+L,gp=tt?Math.round(G/tt*100):0,lp=tt?Math.round(L/tt*100):0;
+      return `<div class="wrow"><div><b style="font-size:12px">${nm} <span class="mute" style="font-weight:500">(${String(td).padStart(2,'0')})</span></b><small>Gain ${gp}% · Loss ${lp}%</small></div>
+        <div style="text-align:right"><b class="${has?(r>=0?'gain':'loss'):'mute'}" style="font-size:12px">${has?brl(r):'—'}</b></div></div>`}).join('');
+    return `<div class="card wk"><header><b>Semana ${w.n}</b><small>Dias ${String(w.s).padStart(2,'0')} a ${String(w.e).padStart(2,'0')}</small></header>
+      <div class="two"><div class="mini"><span>Valor total</span><b class="${t>=0?'gain':'loss'}" style="font-size:14px">${brl(t)}</b></div>
+      <div class="mini"><span>Valor líquido</span><b class="${nt>=0?'gain':'loss'}" style="font-size:14px">${brl(nt)}</b></div></div>${rows}</div>`}).join('');
 }
 
-document.getElementById('access-password').addEventListener('keypress', function(e) {
-  if (e.key === 'Enter') validatePassword();
+/* equity */
+function renderEq(){
+  load();const T=dim(),lab=[],eq=[],lo=[];let c=0,cl=0;
+  for(let d=1;d<=T;d++){lab.push(String(d).padStart(2,'0')+'/'+String(M+1).padStart(2,'0'));const r=parseFloat(data[d]?.result);if(!isNaN(r)){c+=r;if(r<0)cl+=Math.abs(r)}eq.push(c);lo.push(cl)}
+  if(ch.e)ch.e.destroy();if(ch.d)ch.d.destroy();
+  const ctx=$('cEq').getContext('2d'),gr=ctx.createLinearGradient(0,0,0,380);
+  gr.addColorStop(0,'rgba(0,246,255,.28)');gr.addColorStop(1,'rgba(0,246,255,0)');
+  ch.e=new Chart(ctx,{type:'line',
+    data:{labels:lab,datasets:[{label:'Capital acumulado',data:eq,borderColor:css('--acc'),backgroundColor:gr,fill:true,tension:.3,borderWidth:2.5,pointRadius:2,pointHoverRadius:6},
+      {label:'Loss acumulado',data:lo,borderColor:css('--loss'),borderDash:[5,5],borderWidth:1.5,pointRadius:0,tension:.3}]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      onHover:(e,a,chart)=>{if(a.length)dough(a[0].index+1,T);else dough(T,T)},
+      plugins:{legend:{labels:{color:css('--mute'),usePointStyle:true,boxWidth:8}},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${brl(c.raw)}`}}},
+      scales:{x:{grid:{display:false},ticks:{color:css('--mute'),maxTicksLimit:10}},y:{grid:{color:css('--line')},ticks:{color:css('--mute'),callback:v=>'R$ '+v}}}}});
+  ch.d=new Chart($('cDo'),{type:'doughnut',
+    data:{labels:['Gain','Loss'],datasets:[{data:[1,1],backgroundColor:[css('--gain'),css('--loss')],borderWidth:0,hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'72%',plugins:{legend:{position:'bottom',labels:{color:css('--mute'),usePointStyle:true,boxWidth:8}},tooltip:{callbacks:{label:c=>` ${c.label}: ${brl(c.raw)}`}}}},
+    plugins:[{id:'ctr',afterDraw(c){const{ctx:x,chartArea:a}=c,cx=(a.left+a.right)/2,cy=(a.top+a.bottom)/2;x.save();x.textAlign='center';x.textBaseline='middle';x.font='800 17px Inter';
+      x.fillStyle=css('--gain');x.fillText(brl(c.gv||0),cx,cy-12);x.fillStyle=css('--loss');x.fillText(brl(c.lv||0),cx,cy+12);x.restore()}}]});
+  dough(T,T);
+}
+function dough(max,T){
+  let g=0,l=0;for(let d=1;d<=max;d++){const r=parseFloat(data[d]?.result);if(!isNaN(r)){r>0?g+=r:l+=Math.abs(r)}}
+  const c=ch.d;c.data.datasets[0].data=[g||.01,l||.01];c.gv=g;c.lv=l;c.update('none');
+  $('dTitle').textContent=max===T?`Gain vs Loss · ${MN[M]} (total)`:`Gain vs Loss · até ${String(max).padStart(2,'0')}/${String(M+1).padStart(2,'0')}`;
+}
+
+/* resultado anual */
+function monthData(m){try{return JSON.parse(st.get(kfor(m))||'{}')}catch(e){return {}}}
+function renderAnual(){
+  let tot=0,h='';
+  MN.forEach((n,m)=>{
+    const dd=monthData(m),T=new Date(Y,m+1,0).getDate();
+    const s=(a,b)=>{let t=0;for(let d=a;d<=b;d++){const r=parseFloat(dd[d]?.result);if(!isNaN(r))t+=r}return t};
+    const q1=net(s(1,15)),q2=net(s(16,T)),mt=q1+q2;tot+=mt;
+    h+=`<div class="card wk"><header><b>${n}</b><small>${Y}</small></header>
+      <div class="mini" style="background:var(--acc-soft);margin-bottom:10px"><span>Mesa total</span><b class="${mt>=0?'gain':'loss'}" style="font-size:18px">${brl(mt)}</b></div>
+      <div class="wrow"><small>1ª quinzena</small><b class="${q1>=0?'gain':'loss'}" style="font-size:12px">${brl(q1)}</b></div>
+      <div class="wrow"><small>2ª quinzena</small><b class="${q2>=0?'gain':'loss'}" style="font-size:12px">${brl(q2)}</b></div></div>`;
+  });
+  $('an-months').innerHTML=h;
+  const el=$('an-total');el.textContent=brl(tot);el.style.color=tot<0?'var(--loss)':'';
+}
+
+/* comparativo */
+$('cmpSel').innerHTML=MN.map((n,i)=>`<option value="${i}"${i===M?' selected':''}>${n} ${Y}</option>`).join('');
+function mdE(e,m){try{return JSON.parse(st.get(e===2?`win_trading_data_e2_${Y}_${m}`:`win_trading_data_${Y}_${m}`)||'{}')}catch(x){return {}}}
+const sumD=(dd,a,b)=>{let s=0;for(let d=a;d<=b;d++){const r=parseFloat(dd[d]?.result);if(!isNaN(r))s+=r}return s};
+const mesaM=(dd,m)=>{const T=new Date(Y,m+1,0).getDate();return net(sumD(dd,1,15))+net(sumD(dd,16,T))};
+const gc=v=>v>=0?'gain':'loss';
+function renderComp(){
+  const T=dim(),d1=mdE(1,M),d2=mdE(2,M);let wk=[],s=1,n=1;
+  while(s<=T){const e=Math.min(s+6,T);wk.push({n,s,e});s=e+1;n++}
+  const a=wk.map(w=>sumD(d1,w.s,w.e)),b=wk.map(w=>sumD(d2,w.s,w.e)),c=a.map((v,i)=>v+b[i]);
+  $('cmpMonth').textContent=MN[M];
+  if(ch.c)ch.c.destroy();
+  ch.c=new Chart($('cCmp'),{type:'bar',
+    data:{labels:wk.map(w=>'Semana '+w.n),datasets:[
+      {label:'Empresa 1',data:a,backgroundColor:css('--acc'),borderRadius:6,maxBarThickness:46},
+      {label:'Empresa 2',data:b,backgroundColor:'#8B5CF6',borderRadius:6,maxBarThickness:46},
+      {label:'Soma das duas',data:c,backgroundColor:css('--gain'),borderRadius:6,maxBarThickness:46}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:css('--mute'),usePointStyle:true,boxWidth:8}},tooltip:{callbacks:{label:x=>` ${x.dataset.label}: ${brl(x.raw)}`}}},
+      scales:{x:{grid:{display:false},ticks:{color:css('--mute')}},y:{grid:{color:css('--line')},ticks:{color:css('--mute'),callback:v=>brl(v)}}}}});
+  $('cmpWeeks').innerHTML=wk.map((w,i)=>`<div class="card wk"><header><b>Semana ${w.n}</b><small>Dias ${String(w.s).padStart(2,'0')} a ${String(w.e).padStart(2,'0')}</small></header>
+    <div class="wrow"><small>Empresa 1</small><b class="${gc(a[i])}" style="font-size:12px">${brl(a[i])}</b></div>
+    <div class="wrow"><small>Empresa 2</small><b class="${gc(b[i])}" style="font-size:12px">${brl(b[i])}</b></div>
+    <div class="mini" style="background:var(--acc-soft);margin-top:8px"><span>Soma das duas</span><b class="${gc(c[i])}" style="font-size:16px">${brl(c[i])}</b></div></div>`).join('');
+  let t1=0,t2=0,rows='';
+  MN.forEach((nm,m)=>{const x=mesaM(mdE(1,m),m),y=mesaM(mdE(2,m),m);t1+=x;t2+=y;
+    rows+=`<tr><td>${nm}</td><td class="${gc(x)}">${brl(x)}</td><td class="${gc(y)}">${brl(y)}</td><td class="${gc(x+y)}">${brl(x+y)}</td></tr>`});
+  $('cmpRows').innerHTML=rows;
+  $('cmpFoot').innerHTML=`<tr><td>Total do ano</td><td class="${gc(t1)}">${brl(t1)}</td><td class="${gc(t2)}">${brl(t2)}</td><td class="${gc(t1+t2)}">${brl(t1+t2)}</td></tr>`;
+  [['cp-1',t1],['cp-2',t2],['cp-s',t1+t2]].forEach(([id,v])=>{const el=$(id);el.textContent=brl(v);if(id!=='cp-s')cls(el,v);else el.style.color=v<0?'var(--loss)':''});
+}
+
+/* calculator */
+$('calc').innerHTML=[1,2,3,4].map(i=>`<div class="card"><b>Cenário ${i}</b>
+  <div><label class="l">PONTOS</label><input type="number" id="cp${i}" placeholder="500" oninput="calcCol(${i})"></div>
+  <div><label class="l">CONTRATOS</label><input type="number" id="cc${i}" value="1" oninput="calcCol(${i})"></div>
+  <div class="res"><div><span class="mute">Bruto</span><b id="cb${i}">R$ 0,00</b></div><div><span class="mute">Mesa (−30%)</span><b id="cm${i}">R$ 0,00</b></div></div></div>`).join('');
+function calcCol(i){
+  const p=parseFloat($('cp'+i).value)||0,c=parseInt($('cc'+i).value)||1,b=p*c*.2,m=net(b);
+  $('cb'+i).textContent=brl(b);$('cm'+i).textContent=brl(m);cls($('cb'+i),b);cls($('cm'+i),m);
+}
+
+/* modal */
+function openModal(d){
+  day=d;const x=data[d]||{};
+  $('mTitle').textContent=`${String(d).padStart(2,'0')}/${String(M+1).padStart(2,'0')}/${Y}`;
+  $('iR').value=x.result??'';$('iT').value=x.trades??'';$('iC').value=x.contracts??'';
+  document.querySelectorAll('.sc').forEach(c=>c.checked=(x.strategies||[]).includes(c.value));
+  imgs=[...(x.images||[])];renderImgs();parts=[...(x.parts||[])];renderParts();$('modal').classList.remove('hidden');
+}
+function closeModal(){$('modal').classList.add('hidden');day=null;renderCal()}
+function saveDay(){
+  if(!day)return;const r=$('iR').value,t=$('iT').value,c=$('iC').value;
+  data[day]={result:r===''?'':parseFloat(r),trades:t===''?'':parseInt(t),contracts:c===''?'':parseInt(c),
+    strategies:data[day]?.strategies||[],parts,images:imgs};
+  save();closeModal();
+}
+$('paste').addEventListener('click',()=>$('paste').focus());
+$('paste').addEventListener('paste',e=>{
+  for(const it of (e.clipboardData?.items||[]))if(it.type.startsWith('image/')){
+    if(imgs.length>=5){alert('Máximo de 5 imagens por dia.');return}
+    const rd=new FileReader();rd.onload=ev=>{imgs.push({url:ev.target.result,status:'gain',note:''});renderImgs()};rd.readAsDataURL(it.getAsFile());e.preventDefault();break}
 });
-
-window.addEventListener('DOMContentLoaded', () => {
-  if (localStorage.getItem('win_system_auth') === 'true') {
-    initApp();
-  }
-});
-
-function initApp() {
-  document.getElementById('auth-screen').classList.add('hidden');
-  document.body.classList.remove('flex', 'items-center', 'justify-center');
-  document.getElementById('main-app').classList.remove('hidden');
-  renderCalendar();
+function renderImgs(){
+  $('iCount').textContent=`${imgs.length} / 5`;
+  $('imgs').innerHTML=imgs.map((im,i)=>`<div class="img"><img src="${im.url}" alt="Print ${i+1}" onclick="zoom(${i})">
+    <div style="flex:1;display:flex;flex-direction:column;gap:6px;min-width:0">
+      <div style="display:flex;gap:8px"><select style="padding:6px 10px" onchange="imgs[${i}].status=this.value"><option value="gain"${im.status==='gain'?' selected':''}>Gain</option><option value="loss"${im.status==='loss'?' selected':''}>Loss</option></select>
+      <button class="btn" style="padding:6px 10px;color:var(--loss)" onclick="imgs.splice(${i},1);renderImgs()">Remover</button></div>
+      <textarea placeholder="Notas sobre a operação..." oninput="imgs[${i}].note=this.value" style="height:52px">${esc(im.note)}</textarea></div></div>`).join('');
 }
-
-
-// --- LÓGICA DO DIÁRIO DE TRADING ---
-const currentYear = 2026;
-let currentMonth = 8;
-let tradingData = {};
-
-function getStorageKey() {
-  return `win_trading_data_${currentYear}_${currentMonth}`;
+function zoom(i){const l=$('lb');l.querySelector('img').src=imgs[i].url;l.classList.remove('hidden')}
+function addPart(){const v=parseFloat($('pIn').value);if(isNaN(v))return;parts.push(v);$('pIn').value='';renderParts();$('pIn').focus()}
+function delPart(i){parts.splice(i,1);renderParts();if(!parts.length)$('iR').value=''}
+function renderParts(){
+  $('pList').innerHTML=parts.map((v,i)=>`<span style="display:inline-flex;gap:8px;align-items:center;padding:5px 6px 5px 11px;border-radius:999px;border:1px solid var(--line);background:var(--soft);font-weight:700;font-size:12px"><span class="${v>=0?'gain':'loss'}">${brl(v)}</span><button class="btn" style="padding:1px 8px;border-radius:999px" onclick="delPart(${i})" aria-label="Remover">×</button></span>`).join('');
+  if(parts.length)$('iR').value=+parts.reduce((a,b)=>a+b,0).toFixed(2);
 }
-
-function loadMonthData() {
-  tradingData = JSON.parse(localStorage.getItem(getStorageKey()) || '{}');
-}
-
-function saveMonthData() {
-  localStorage.setItem(getStorageKey(), JSON.stringify(tradingData));
-}
-
-function changeMonth(m) {
-  currentMonth = parseInt(m);
-  loadMonthData();
-  renderCalendar();
-  if(!document.getElementById('view-performance').classList.contains('hidden')) renderPerformance();
-  if(!document.getElementById('view-equity').classList.contains('hidden')) renderCharts();
-}
-
-let currentDay=null,currentDayImages=[],equityChartInstance=null,doughnutChartInstance=null,weeklyBarChartInstance=null;
-
-function getDaysInMonth(year, month){
-  return new Date(year, month + 1, 0).getDate();
-}
-
-function brl(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
-function sumResults(start=1, end=null){
-  const totalDays = getDaysInMonth(currentYear, currentMonth);
-  const actualEnd = end ? Math.min(end, totalDays) : totalDays;
-  let s=0;
-  for(let d=start; d<=actualEnd; d++){
-    const r=parseFloat(tradingData[d]?.result);
-    if(!isNaN(r)) s+=r;
-  }
-  return s;
-}
-function netDesk(v){return v>0?v*0.70:v;}
-
-function switchTab(tab){
-  const tabs=['calendar','performance','equity','calc'];
-  tabs.forEach(t=>{
-    document.getElementById('tab-'+t).className='nav-btn bg-gray-900/80 text-gray-400 px-4 py-2.5 rounded-xl text-xs font-bold';
-    document.getElementById('view-'+t).classList.add('hidden');
-  });
-  document.getElementById('tab-'+tab).className='nav-btn nav-active px-4 py-2.5 rounded-xl text-xs font-bold';
-  document.getElementById('view-'+tab).classList.remove('hidden');
-  if(tab==='performance')renderPerformance();
-  if(tab==='equity')renderCharts();
-}
-
-// --- LÓGICA DA CALCULADORA WIN (4 COLUNAS) ---
-function calcWinCol(id) {
-  const pts = parseFloat(document.getElementById(`calc-points-${id}`).value) || 0;
-  const cts = parseInt(document.getElementById(`calc-contracts-${id}`).value) || 1;
-  const bruto = pts * cts * 0.20;
-  const mesa = bruto > 0 ? bruto * 0.70 : bruto;
-  
-  const brutoEl = document.getElementById(`calc-bruto-${id}`);
-  const mesaEl = document.getElementById(`calc-mesa-${id}`);
-  
-  brutoEl.textContent = brl(bruto);
-  brutoEl.className = `font-black ${bruto >= 0 ? 'text-cyan-300' : 'text-red-400'}`;
-  
-  mesaEl.textContent = brl(mesa);
-  mesaEl.className = `font-black ${mesa >= 0 ? 'text-green-300' : 'text-red-400'}`;
-}
-
-function renderCalendar(){
-  loadMonthData();
-  const grid=document.getElementById('calendar-grid');
-  let html='';
-  const totalDays = getDaysInMonth(currentYear, currentMonth);
-  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-  
-  for(let i=0; i<firstDay; i++) {
-    html+='<div class="rounded-xl min-h-[94px] sm:min-h-[124px] bg-black/10 border border-gray-900/70"></div>';
-  }
-
-  let pos=0, neg=0, tradesTotal=0;
-  const monthNamesAbr = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
-  const monthStr = monthNamesAbr[currentMonth];
-
-  for(let d=1; d<=totalDays; d++){
-    const data=tradingData[d]||{};
-    const r=parseFloat(data.result);
-    let cls='day-card';
-    if(!isNaN(r)&&r>0){cls+=' neon-green';pos+=r}
-    if(!isNaN(r)&&r<0){cls+=' neon-red';neg+=Math.abs(r)}
-    if(data.trades)tradesTotal+=parseInt(data.trades)||0;
-    const imgs=data.images||[];
-    const gains=imgs.filter(x=>x.status==='gain').length;
-    const losses=imgs.filter(x=>x.status==='loss').length;
-    const tagged=gains+losses;
-    const bar=tagged?`<div class="mt-1 h-1 rounded-full overflow-hidden bg-gray-900 flex"><span class="bg-green-400" style="width:${gains/tagged*100}%"></span><span class="bg-red-500" style="width:${losses/tagged*100}%"></span></div>`:'';
-    
-    html+=`<div onclick="openModal(${d})" class="${cls} rounded-xl p-2 flex flex-col justify-between overflow-hidden">
-      <div class="flex justify-between"><span class="text-[11px] font-black text-gray-300">${String(d).padStart(2,'0')}</span><span class="text-[8px] text-gray-600">${monthStr}</span></div>
-      <div>
-        ${!isNaN(r)?`<div class="text-[11px] font-black ${r>=0?'text-green-400':'text-red-400'}">${brl(r)}</div>`:''}
-        ${bar}
-        <div class="text-[8px] text-gray-500 mt-1">Op: ${data.trades||0} • C: ${data.contracts||0} ${imgs.length?`• 📷${imgs.length}`:''}</div>
-      </div>
-      <div class="text-[8px] text-gray-600 text-right">Editar +</div>
-    </div>`;
-  }
-  grid.innerHTML=html;
-  const net=pos-neg;
-  document.getElementById('metric-positive').textContent=brl(pos);
-  document.getElementById('metric-negative').textContent=brl(neg);
-  const netEl=document.getElementById('metric-net');netEl.textContent=brl(net);netEl.className=`metric-value font-black text-sm ${net>=0?'text-green-400':'text-red-400'}`;
-  
-  const first15 = sumResults(1, 15);
-  const tableFirst15 = netDesk(first15);
-  const last15 = sumResults(16, totalDays);
-  const tableLast15 = netDesk(last15);
-  const tableTotal = tableFirst15 + tableLast15;
-  
-  document.getElementById('cal-balance-first15').textContent = brl(first15);
-  document.getElementById('cal-table-first15').textContent = brl(tableFirst15);
-  document.getElementById('cal-balance-last15').textContent = brl(last15);
-  document.getElementById('cal-table-last15').textContent = brl(tableLast15);
-  document.getElementById('cal-table-total').textContent = brl(tableTotal);
-
-  document.getElementById('metric-table-first15').textContent = brl(tableFirst15);
-  document.getElementById('metric-table-last15').textContent = brl(tableLast15);
-  
-  document.getElementById('cal-balance-first15').className = `text-sm font-black mt-1 block ${first15>=0?'text-cyan-300':'text-red-400'}`;
-  document.getElementById('cal-table-first15').className = `font-black mt-1 block ${tableFirst15>=0?'text-green-300':'text-red-400'}`;
-  document.getElementById('cal-balance-last15').className = `text-sm font-black mt-1 block ${last15>=0?'text-blue-300':'text-red-400'}`;
-  document.getElementById('cal-table-last15').className = `text-sm font-black mt-1 block ${tableLast15>=0?'text-green-300':'text-red-400'}`;
-  document.getElementById('cal-table-total').className = `text-sm font-black mt-1 block ${tableTotal>=0?'text-cyan-300':'text-red-400'}`;
-
-  document.getElementById('metric-table-first15').className = `metric-value font-black ${tableFirst15>=0?'text-green-300':'text-red-400'}`;
-  document.getElementById('metric-table-last15').className = `metric-value font-black text-sm ${tableLast15>=0?'text-green-300':'text-red-400'}`;
-}
-
-function renderPerformance(){
-  loadMonthData();
-  const totalDays = getDaysInMonth(currentYear, currentMonth);
-  let weeks=[];
-  let start=1, weekNum=1;
-  while(start <= totalDays){
-    let end = Math.min(start + 6, totalDays);
-    weeks.push({ weekNum, start, end });
-    start = end + 1;
-    weekNum++;
-  }
-
-  const weeklyResults = weeks.map(w=>{
-    let result=0;
-    for(let d=w.start; d<=w.end; d++){
-      const x=tradingData[d];if(!x)continue;
-      const r=parseFloat(x.result);if(!isNaN(r))result+=r;
-    }
-    return {name:`Semana ${w.weekNum}`, result};
-  });
-
-  const canvas=document.getElementById('weeklyBarChart');
-  if(canvas){
-    if(weeklyBarChartInstance)weeklyBarChartInstance.destroy();
-    weeklyBarChartInstance=new Chart(canvas.getContext('2d'),{
-      type:'bar',
-      data:{
-        labels:weeklyResults.map(w=>w.name),
-        datasets:[{
-          label:'Resultado semanal',
-          data:weeklyResults.map(w=>w.result),
-          backgroundColor:weeklyResults.map(w=>w.result>=0?'rgba(0,255,136,.75)':'rgba(255,56,100,.75)'),
-          borderColor:weeklyResults.map(w=>w.result>=0?'#00ff88':'#ff3864'),
-          borderWidth:1.5,
-          borderRadius:8
-        }]
-      },
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        scales:{
-          x:{grid:{color:'rgba(31,41,55,.3)'},ticks:{color:'#9ca3af',font:{size:11,weight:'bold'}}},
-          y:{
-            grid:{color:'rgba(31,41,55,.35)'},
-            ticks:{color:'#9ca3af',callback:v=>brl(v)}
-          }
-        },
-        plugins:{
-          legend:{display:false},
-          tooltip:{callbacks:{label:c=>` ${brl(c.raw)}`}}
-        }
-      },
-      plugins:[{
-        id:'weeklyBarValuesCenter',
-        afterDatasetsDraw(chart){
-          const ctx=chart.ctx;
-          ctx.save();
-          ctx.font='bold 12px Inter, sans-serif';
-          ctx.textAlign='center';
-          ctx.textBaseline='middle';
-          chart.data.datasets.forEach((dataset,di)=>{
-            const meta=chart.getDatasetMeta(di);
-            meta.data.forEach((bar,i)=>{
-              const value=dataset.data[i]||0;
-              ctx.fillStyle='#ffffff';
-              const y=(bar.y + bar.base)/2;
-              ctx.fillText(brl(value),bar.x,y);
-            });
-          });
-          ctx.restore();
-        }
-      }]
-    });
-  }
-
-  const container = document.getElementById('weekly-columns-container');
-  if(container){
-    let html = '';
-    weeks.forEach(w => {
-      let weekTotal = 0;
-      for(let d = w.start; d <= w.end; d++) {
-        const r = parseFloat(tradingData[d]?.result);
-        if(!isNaN(r)) weekTotal += r;
-      }
-      const weekNet = netDesk(weekTotal);
-
-      html += `
-        <div class="glass rounded-xl p-4 flex flex-col justify-between border border-cyan-500/20 space-y-3">
-          <div class="border-b border-gray-800 pb-3">
-            <div class="flex justify-between items-center mb-2">
-              <span class="font-black text-cyan-300 text-sm">Semana ${w.weekNum}</span>
-              <span class="text-[10px] text-gray-400">Dias ${String(w.start).padStart(2,'0')} a ${String(w.end).padStart(2,'0')}</span>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 mt-2">
-              <div class="bg-black/40 border border-gray-800 rounded-lg p-2 text-center">
-                <span class="text-[9px] text-gray-400 block uppercase font-bold">Valor Total</span>
-                <span class="font-black text-xs ${weekTotal >= 0 ? 'text-green-400' : 'text-red-400'}">${brl(weekTotal)}</span>
-              </div>
-              <div class="bg-black/40 border border-gray-800 rounded-lg p-2 text-center">
-                <span class="text-[9px] text-gray-400 block uppercase font-bold">Valor Líquido</span>
-                <span class="font-black text-xs ${weekNet >= 0 ? 'text-green-300' : 'text-red-400'}">${brl(weekNet)}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="space-y-2">
-            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Segunda a Sexta-feira</div>
-            <div class="space-y-1.5 text-xs">
-      `;
-
-      const weekdaysInfo = [
-        { id: 1, name: 'Segunda' },
-        { id: 2, name: 'Terça' },
-        { id: 3, name: 'Quarta' },
-        { id: 4, name: 'Quinta' },
-        { id: 5, name: 'Sexta' }
-      ];
-
-      weekdaysInfo.forEach(wd => {
-        let targetDay = null;
-        for(let d = w.start; d <= w.end; d++) {
-          const dateObj = new Date(currentYear, currentMonth, d);
-          if(dateObj.getDay() === wd.id) {
-            targetDay = d;
-            break;
-          }
-        }
-
-        if(targetDay !== null) {
-          const data = tradingData[targetDay] || {};
-          const r = parseFloat(data.result);
-          const hasVal = !isNaN(r);
-          
-          let wdGains = 0, wdLosses = 0;
-          for(let d = 1; d <= totalDays; d++) {
-            const dt = new Date(currentYear, currentMonth, d);
-            if(dt.getDay() === wd.id) {
-              const res = parseFloat(tradingData[d]?.result);
-              if(!isNaN(res)) {
-                if(res > 0) wdGains++;
-                else if(res < 0) wdLosses++;
-              }
-            }
-          }
-          const totalWd = wdGains + wdLosses;
-          const gPct = totalWd > 0 ? (wdGains / totalWd) * 100 : 0;
-          const lPct = totalWd > 0 ? (wdLosses / totalWd) * 100 : 0;
-
-          html += `
-            <div class="bg-black/30 border border-gray-800/80 rounded-lg p-2 flex justify-between items-center">
-              <div>
-                <div class="font-bold text-gray-300 text-[11px]">${wd.name} <span class="text-[9px] text-gray-500">(${String(targetDay).padStart(2,'0')})</span></div>
-                <div class="text-[9px] text-gray-400">Gain: <span class="text-green-400 font-bold">${gPct.toFixed(0)}%</span> | Loss: <span class="text-red-400 font-bold">${lPct.toFixed(0)}%</span></div>
-              </div>
-              <div class="text-right">
-                <div class="font-black text-[11px] ${hasVal ? (r >= 0 ? 'text-green-400' : 'text-red-400') : 'text-gray-600'}">${hasVal ? brl(r) : '—'}</div>
-                <div class="text-[8px] ${hasVal ? (r >= 0 ? 'text-green-400' : 'text-red-400') : 'text-gray-600'}">${hasVal ? (r >= 0 ? '🟢 GAIN' : '🔴 LOSS') : 'Sem reg.'}</div>
-              </div>
-            </div>
-          `;
-        } else {
-          html += `
-            <div class="bg-black/10 border border-gray-900/50 rounded-lg p-2 flex justify-between items-center opacity-40">
-              <div>
-                <div class="font-bold text-gray-400 text-[11px]">${wd.name}</div>
-                <div class="text-[9px] text-gray-600">Fora do período</div>
-              </div>
-              <div class="text-right text-[10px] text-gray-600">—</div>
-            </div>
-          `;
-        }
-      });
-
-      html += `
-            </div>
-          </div>
-        </div>
-      `;
-    });
-    container.innerHTML = html;
-  }
-}
-
-const verticalLinePlugin={id:'verticalLine',afterDraw(chart){
-  if(chart.tooltipIndex==null)return;const p=chart.getDatasetMeta(0).data[chart.tooltipIndex];if(!p)return;
-  const c=chart.ctx;c.save();c.beginPath();c.moveTo(p.x,chart.scales.y.top);c.lineTo(p.x,chart.scales.y.bottom);c.setLineDash([4,4]);c.strokeStyle='rgba(0,246,255,.55)';c.stroke();c.restore();
-}};
-
-const equityValuesPlugin={
-  id:'equityValuesPlugin',
-  afterDatasetsDraw(chart){
-    const ctx=chart.ctx;
-    ctx.save();
-    ctx.font='bold 12px Inter, sans-serif';
-    ctx.textAlign='center';
-    
-    chart.data.datasets.forEach((dataset,di)=>{
-      const meta=chart.getDatasetMeta(di);
-      meta.data.forEach((point,i)=>{
-        if((i+1)%5===0 || i === meta.data.length - 1){
-          const val=dataset.data[i]||0;
-          if(val !== 0){
-            ctx.fillStyle= di === 0 ? '#00f6ff' : '#ff3864';
-            const yOffset = di === 0 ? -26 : 32;
-            ctx.fillText(brl(val), point.x, point.y + yOffset);
-          }
-        }
-      });
-    });
-    ctx.restore();
-  }
-};
-
-function renderCharts(){
-  loadMonthData();
-  const totalDays = getDaysInMonth(currentYear, currentMonth);
-  const ce=document.getElementById('equityChart').getContext('2d');
-  const cd=document.getElementById('gainLossDoughnut').getContext('2d');
-  if(equityChartInstance)equityChartInstance.destroy();
-  if(doughnutChartInstance)doughnutChartInstance.destroy();
-
-  const monthNamesAbr = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-  const mStr = monthNamesAbr[currentMonth];
-
-  let labels=[],equity=[],loss=[],cum=0,cumLoss=0;
-  for(let d=1;d<=totalDays;d++){
-    labels.push(String(d).padStart(2,'0')+'/'+mStr);
-    const r=parseFloat(tradingData[d]?.result);
-    if(!isNaN(r)){cum+=r;if(r<0)cumLoss+=Math.abs(r)}
-    equity.push(cum);
-    loss.push(cumLoss);
-  }
-  const grad=ce.createLinearGradient(0,0,0,420);grad.addColorStop(0,'rgba(0,246,255,.25)');grad.addColorStop(1,'rgba(0,246,255,0)');
-  
-  equityChartInstance=new Chart(ce,{
-    type:'line',
-    data:{labels,datasets:[
-      {label:'Capital acumulado',data:equity,borderColor:'#00f6ff',backgroundColor:grad,borderWidth:2,pointRadius:3,pointHoverRadius:6,fill:true,tension:.3},
-      {label:'Loss acumulado',data:loss,borderColor:'#ff3864',borderDash:[5,5],borderWidth:1.5,pointRadius:3,fill:false,tension:.3}
-    ]},
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      onHover:(e,a,c)=>{if(a.length){c.tooltipIndex=a[0].index;updateDoughnut(a[0].index+1, totalDays)}else{c.tooltipIndex=null;updateDoughnut(totalDays, totalDays)}c.draw()},
-      plugins:{
-        legend:{labels:{color:'#9ca3af',font:{size:10,weight:'bold'}}},
-        tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${brl(c.raw)}`}}
-      },
-      scales:{
-        x:{grid:{color:'rgba(31,41,55,.3)'},ticks:{color:'#9ca3af',font:{size:9}}},
-        y:{grid:{color:'rgba(31,41,55,.35)'},ticks:{color:'#9ca3af',callback:v=>'R$ '+v}}
-      }
-    },
-    plugins:[verticalLinePlugin, equityValuesPlugin]
-  });
-
-  const doughnutCenterTextPlugin={
-    id:'doughnutCenterText',
-    afterDraw(chart){
-      const {width, height, ctx}=chart;
-      ctx.save();
-      const g = chart.gainVal || 0;
-      const l = chart.lossVal || 0;
-
-      ctx.textAlign='center';
-      ctx.textBaseline='middle';
-
-      ctx.font='bold 20px Inter, sans-serif';
-      ctx.fillStyle='#00ff88';
-      ctx.fillText(brl(g), width / 2, (height / 2) - 14);
-
-      ctx.fillStyle='#ff3864';
-      ctx.fillText(brl(l), width / 2, (height / 2) + 14);
-
-      ctx.restore();
-    }
-  };
-
-  doughnutChartInstance=new Chart(cd,{
-    type:'doughnut',
-    data:{
-      labels:['Gain','Loss'],
-      datasets:[{data:[1,1],backgroundColor:['#00ff88','#ff3864'],borderWidth:0,hoverOffset:7}]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      cutout:'72%',
-      plugins:{
-        legend:{position:'bottom',labels:{color:'#9ca3af',font:{size:10,weight:'bold'},padding:16}},
-        tooltip:{callbacks:{label:c=>` ${c.label}: ${brl(c.raw)}`}}
-      }
-    },
-    plugins:[doughnutCenterTextPlugin]
-  });
-  updateDoughnut(totalDays, totalDays);
-}
-
-function updateDoughnut(maxDay, totalDays){
-  let g=0,l=0;
-  for(let d=1;d<=maxDay;d++){
-    const r=parseFloat(tradingData[d]?.result);
-    if(!isNaN(r)){if(r>0)g+=r;else l+=Math.abs(r)}
-  }
-  doughnutChartInstance.data.datasets[0].data=[g||.01,l||.01];
-  doughnutChartInstance.gainVal = g;
-  doughnutChartInstance.lossVal = l;
-  doughnutChartInstance.update('none');
-  const monthFullNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  document.getElementById('doughnut-title').textContent = maxDay===totalDays ? `Gain vs Loss • ${monthFullNames[currentMonth]} Total` : `Gain vs Loss • Até ${String(maxDay).padStart(2,'0')}/${String(currentMonth+1).padStart(2,'0')}`;
-}
-
-function openModal(day){
-  currentDay=day;const d=tradingData[day]||{};
-  const monthFullNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  document.getElementById('modal-title').textContent=`Detalhes do Dia — ${String(day).padStart(2,'0')}/${String(currentMonth+1).padStart(2,'0')}/${currentYear} (${monthFullNames[currentMonth]})`;
-  document.getElementById('input-result').value=d.result??'';
-  document.getElementById('input-trades').value=d.trades??'';
-  document.getElementById('input-contracts').value=d.contracts??'';
-  document.querySelectorAll('.strat-check').forEach(c=>c.checked=(d.strategies||[]).includes(c.value));
-  currentDayImages=[...(d.images||[])];renderImagesPreview();
-  document.getElementById('day-modal').classList.remove('hidden');
-}
-function closeModal(){document.getElementById('day-modal').classList.add('hidden');currentDay=null;renderCalendar()}
-function saveDayData(){
-  if(!currentDay)return;
-  const r=document.getElementById('input-result').value;
-  const t=document.getElementById('input-trades').value;
-  const c=document.getElementById('input-contracts').value;
-  const strategies=[...document.querySelectorAll('.strat-check:checked')].map(x=>x.value);
-  tradingData[currentDay]={result:r===''?'':parseFloat(r),trades:t===''?'':parseInt(t),contracts:c===''?'':parseInt(t),strategies,images:currentDayImages};
-  saveMonthData();
-  closeModal();
-}
-
-const pasteZone=document.getElementById('paste-zone');
-pasteZone.addEventListener('click',()=>pasteZone.focus());
-pasteZone.addEventListener('paste',e=>{
-  const items=(e.clipboardData||e.originalEvent?.clipboardData)?.items||[];
-  for(const item of items)if(item.type.startsWith('image/')){
-    if(currentDayImages.length>=5){alert('Máximo de 5 imagens por dia.');return}
-    const reader=new FileReader();reader.onload=ev=>{currentDayImages.push({url:ev.target.result,status:'gain',note:''});renderImagesPreview()};reader.readAsDataURL(item.getAsFile());e.preventDefault();break;
-  }
-});
-
-function renderImagesPreview(){
-  document.getElementById('image-counter').textContent=`${currentDayImages.length} / 5`;
-  const box=document.getElementById('images-preview-container');
-  if(!currentDayImages.length){box.innerHTML='<p class="text-[10px] text-gray-600 text-center py-2">Nenhum print adicionado.</p>';return}
-  box.innerHTML=currentDayImages.map((im,i)=>`<div class="glass rounded-xl p-3">
-    <div class="flex justify-between items-center mb-2"><b class="text-[10px] text-cyan-300">PRINT #${i+1}</b>
-    <div class="flex gap-2"><select onchange="updateImageStatus(${i},this.value)" class="rounded px-2 py-1 text-[10px]">
-      <option value="gain" ${im.status==='gain'?'selected':''}>🟢 Gain</option><option value="loss" ${im.status==='loss'?'selected':''}>🔴 Loss</option>
-    </select><button onclick="removeImage(${i})" class="text-red-400 text-[10px] font-bold">Remover</button></div></div>
-    <div class="flex gap-3"><img src="${im.url}" class="w-24 h-16 object-cover rounded border border-gray-800 cursor-pointer" onclick="window.open('${im.url}')">
-    <textarea oninput="updateImageNote(${i},this.value)" placeholder="Notas sobre a operação..." class="w-full rounded-lg p-2 text-xs h-16 resize-none">${im.note||''}</textarea></div>
-  </div>`).join('');
-}
-function updateImageStatus(i,s){currentDayImages[i].status=s}
-function updateImageNote(i,n){currentDayImages[i].note=n}
-function removeImage(i){currentDayImages.splice(i,1);renderImagesPreview()}
-function startVoiceRecognition(){
+$('pIn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addPart()}});
+function voice(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){alert('O seu navegador não suporta reconhecimento de voz.');return}
-  const rec=new SR();rec.lang='pt-PT';rec.start();
-  rec.onresult=e=>{const txt=e.results[0][0].transcript.toLowerCase(),m=txt.match(/-?\d+[\.,]?\d*/);if(m)document.getElementById('input-result').value=parseFloat(m[0].replace(',','.'))}
+  if(!SR){alert('Seu navegador não suporta reconhecimento de voz.');return}
+  const r=new SR();r.lang='pt-BR';r.start();
+  r.onresult=e=>{const m=e.results[0][0].transcript.toLowerCase().match(/-?\d+[\.,]?\d*/);if(m)$('iR').value=parseFloat(m[0].replace(',','.'))};
 }
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&day)closeModal()});
+
+if(st.get('win_system_auth')==='true')init();
 </script>
 </body>
 </html>
