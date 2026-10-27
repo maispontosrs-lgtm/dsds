@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Diário do Léo</title>
+<title>Diário</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -150,7 +150,7 @@ kbd{background:var(--soft);padding:2px 6px;border-radius:5px;font-size:11px}
 <div id="auth">
   <div class="card box">
     <div class="logo">DL</div>
-    <h1 style="font-size:20px;margin:16px 0 4px;font-weight:800">Diário do Léo</h1>
+    <h1 style="font-size:20px;margin:16px 0 4px;font-weight:800">Diário</h1>
     <p class="mute" style="margin:0 0 20px;font-size:13px">Digite a senha de licença para entrar.</p>
     <input type="password" id="pw" placeholder="Senha" style="text-align:center;margin-bottom:10px">
     <button class="btn pri" style="width:100%" onclick="login()">Entrar</button>
@@ -160,8 +160,7 @@ kbd{background:var(--soft);padding:2px 6px;border-radius:5px;font-size:11px}
 
 <div id="app" class="wrap hidden">
   <div class="top">
-    <div class="brand"><div class="logo">DL</div><div><h1 id="bTitle">Diário do Léo</h1><p>Mini Índice WIN · 2026</p></div></div>
-    <div class="tabs" id="emp"></div>
+    <div class="brand"><div class="logo">DL</div><div><h1>Diário</h1></div></div>
     <div class="tabs" id="tabs"></div>
     <button class="btn" onclick="logout()">Sair</button>
   </div>
@@ -224,6 +223,31 @@ kbd{background:var(--soft);padding:2px 6px;border-radius:5px;font-size:11px}
     <div class="weeks" id="an-months" style="margin-top:0"></div>
   </section>
 
+  <section id="v-periodo" class="hidden">
+    <div class="bar"><div><h2 style="margin:0;font-size:17px;font-weight:800">Resultado por período</h2><span class="mute" style="font-size:12px">Escolha a data inicial e a final para ver a Mesa total do período.</span></div></div>
+    <div class="card sec" style="margin-bottom:16px">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+        <div style="flex:1;min-width:150px"><label class="l">DATA INICIAL</label><input type="date" id="pIni" min="2026-01-01" max="2026-12-31" onchange="renderPeriodo()"></div>
+        <div style="flex:1;min-width:150px"><label class="l">DATA FINAL</label><input type="date" id="pFim" min="2026-01-01" max="2026-12-31" onchange="renderPeriodo()"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+        <button class="btn" onclick="quick('mes')">Este mês</button><button class="btn" onclick="quick('q1')">1ª quinzena</button><button class="btn" onclick="quick('q2')">2ª quinzena</button><button class="btn" onclick="quick('ano')">Ano todo</button>
+      </div>
+    </div>
+    <div class="kpis k3" style="margin-bottom:12px">
+      <div class="card kpi main"><span>Mesa total do período</span><b id="pd-mesa">R$ 0,00</b></div>
+      <div class="card kpi"><span>Saldo líquido (sem desconto)</span><b id="pd-saldo">R$ 0,00</b></div>
+      <div class="card kpi"><span>Dias com resultado</span><b id="pd-dias">0</b></div>
+    </div>
+    <div class="kpis k3" style="margin-bottom:16px">
+      <div class="card kpi"><span>Total positivo</span><b id="pd-pos" class="gain">R$ 0,00</b></div>
+      <div class="card kpi"><span>Total negativo</span><b id="pd-neg" class="loss">R$ 0,00</b></div>
+      <div class="card kpi"><span>Média por dia operado</span><b id="pd-med">R$ 0,00</b></div>
+    </div>
+    <div class="card sec"><div class="bar"><h2>Detalhe por quinzena</h2></div>
+      <div style="overflow-x:auto"><table class="tb"><thead><tr><th>Período</th><th>Saldo</th><th>Mesa</th></tr></thead><tbody id="pdRows"></tbody></table></div></div>
+  </section>
+
   <section id="v-comp" class="hidden">
     <div class="bar"><div><h2 style="margin:0;font-size:17px;font-weight:800">Comparativo das empresas</h2><span class="mute" style="font-size:12px">Evolução semanal e soma anual (Mesa) da Empresa 1 e da Empresa 2.</span></div>
       <div class="nav"><select id="cmpSel" onchange="changeMonth(this.value)"></select></div></div>
@@ -275,14 +299,14 @@ kbd{background:var(--soft);padding:2px 6px;border-radius:5px;font-size:11px}
 const PASS="123456", Y=2026;
 const MN=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const STRATS=['Linha com imbalance venda','Linha com imbalance de compra','Linha de alvo','Linha de rompimento importante','Linha de alvo 1','Linha de alvo total','Linha fundo do 60','Linha topo do 60'];
-const TABS=[['calendar','Calendário'],['performance','Performance'],['equity','Equity'],['calc','Calculadora'],['anual','Resultado anual 2026'],['comp','Comparativo']];
+const TABS=[['calendar','Calendário'],['performance','Performance'],['equity','Equity'],['calc','Calculadora'],['anual','Resultado anual 2026'],['periodo','Período']];
 let M=8,data={},day=null,imgs=[],ch={},mem={},parts=[];
 const $=id=>document.getElementById(id);
 const st={get(k){try{return localStorage.getItem(k)}catch(e){return mem[k]??null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){mem[k]=v}},del(k){try{localStorage.removeItem(k)}catch(e){delete mem[k]}}};
 const brl=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const dim=()=>new Date(Y,M+1,0).getDate();
-let E=parseInt(st.get('win_empresa'))===2?2:1;
+const E=1;
 const kfor=m=>E===2?`win_trading_data_e2_${Y}_${m}`:`win_trading_data_${Y}_${m}`;
 const key=()=>kfor(M);
 const load=()=>{try{data=JSON.parse(st.get(key())||'{}')}catch(e){data={}}};
@@ -299,15 +323,13 @@ $('pw').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
 function init(){$('auth').classList.add('hidden');$('app').classList.remove('hidden');paintEmp();renderCal()}
 
 /* empresas */
-$('emp').innerHTML=[1,2].map(n=>`<button class="tab" id="e-${n}" onclick="setEmpresa(${n})">Empresa ${n}</button>`).join('');
-function paintEmp(){[1,2].forEach(i=>$('e-'+i).classList.toggle('on',i===E));$('bTitle').textContent='Diário do Léo · Empresa '+E;document.title='Diário do Léo · Empresa '+E}
+function paintEmp(){document.title='Diário'}
 function refresh(){renderCal();if(!$('v-performance').classList.contains('hidden'))renderPerf();if(!$('v-equity').classList.contains('hidden'))renderEq();if(!$('v-anual').classList.contains('hidden'))renderAnual();if(!$('v-comp').classList.contains('hidden'))renderComp()}
-function setEmpresa(n){E=n;st.set('win_empresa',String(n));paintEmp();refresh()}
 
 /* tabs */
 $('tabs').innerHTML=TABS.map(([k,n],i)=>`<button class="tab${i?'':' on'}" id="t-${k}" onclick="tab('${k}')">${n}</button>`).join('');
 function tab(k){TABS.forEach(([t])=>{$('t-'+t).classList.toggle('on',t===k);$('v-'+t).classList.toggle('hidden',t!==k)});
-  if(k==='performance')renderPerf();if(k==='equity')renderEq();if(k==='anual')renderAnual();if(k==='comp')renderComp()}
+  if(k==='performance')renderPerf();if(k==='equity')renderEq();if(k==='anual')renderAnual();if(k==='comp')renderComp();if(k==='periodo')openPeriodo()}
 $('sel').innerHTML=MN.map((n,i)=>`<option value="${i}"${i===M?' selected':''}>${n} ${Y}</option>`).join('');
 function changeMonth(m){M=parseInt(m);$('sel').value=M;$('cmpSel').value=M;renderCal();
   if(!$('v-performance').classList.contains('hidden'))renderPerf();
@@ -436,6 +458,41 @@ function renderComp(){
   $('cmpRows').innerHTML=rows;
   $('cmpFoot').innerHTML=`<tr><td>Total do ano</td><td class="${gc(t1)}">${brl(t1)}</td><td class="${gc(t2)}">${brl(t2)}</td><td class="${gc(t1+t2)}">${brl(t1+t2)}</td></tr>`;
   [['cp-1',t1],['cp-2',t2],['cp-s',t1+t2]].forEach(([id,v])=>{const el=$(id);el.textContent=brl(v);if(id!=='cp-s')cls(el,v);else el.style.color=v<0?'var(--loss)':''});
+}
+
+/* periodo */
+const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+function quick(k){
+  const r={mes:[new Date(Y,M,1),new Date(Y,M+1,0)],q1:[new Date(Y,M,1),new Date(Y,M,15)],q2:[new Date(Y,M,16),new Date(Y,M+1,0)],ano:[new Date(Y,0,1),new Date(Y,11,31)]}[k];
+  $('pIni').value=iso(r[0]);$('pFim').value=iso(r[1]);renderPeriodo();
+}
+function openPeriodo(){if(!$('pIni').value||!$('pFim').value)quick('mes');else renderPeriodo()}
+function renderPeriodo(){
+  const vi=$('pIni').value,vf=$('pFim').value;if(!vi||!vf)return;
+  let s=new Date(vi+'T00:00:00'),e=new Date(vf+'T00:00:00');
+  if(s>e){const t=s;s=e;e=t}
+  const lo0=new Date(Y,0,1),hi0=new Date(Y,11,31);
+  if(s>hi0||e<lo0)return;
+  if(s<lo0)s=lo0;if(e>hi0)e=hi0;
+  $('pIni').value=iso(s);$('pFim').value=iso(e);
+  let pos=0,neg=0,dias=0,saldo=0,mesa=0,rows='';
+  for(let m=s.getMonth();m<=e.getMonth();m++){
+    const dd=monthData(m),T=new Date(Y,m+1,0).getDate(),mm=String(m+1).padStart(2,'0');
+    [[1,15],[16,T]].forEach(([q0,q1])=>{
+      const lo=Math.max(q0,m===s.getMonth()?s.getDate():1),hi=Math.min(q1,m===e.getMonth()?e.getDate():T);
+      if(lo>hi)return;
+      let seg=0,has=false;
+      for(let d=lo;d<=hi;d++){const r=parseFloat(dd[d]?.result);if(!isNaN(r)){seg+=r;has=true;dias++;r>0?pos+=r:neg+=Math.abs(r)}}
+      const ms=net(seg);saldo+=seg;mesa+=ms;
+      rows+=`<tr><td>${String(lo).padStart(2,'0')}/${mm} a ${String(hi).padStart(2,'0')}/${mm}</td><td class="${has?gc(seg):'mute'}">${brl(seg)}</td><td class="${has?gc(ms):'mute'}">${brl(ms)}</td></tr>`;
+    });
+  }
+  $('pdRows').innerHTML=rows;
+  const em=$('pd-mesa');em.textContent=brl(mesa);em.style.color=mesa<0?'var(--loss)':'';
+  $('pd-saldo').textContent=brl(saldo);cls($('pd-saldo'),saldo);
+  $('pd-dias').textContent=dias;
+  $('pd-pos').textContent=brl(pos);$('pd-neg').textContent=brl(neg);
+  const md=dias?saldo/dias:0;$('pd-med').textContent=brl(md);cls($('pd-med'),md);
 }
 
 /* calculator */
